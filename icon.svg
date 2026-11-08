@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- どっち得 アイコン元データ: はかり (天秤) の線画。ここから icon-192.png / icon-512.png を書き出す -->
+  <!-- 地は全面ベージュ (iOS が角を丸める)。図柄は幅の約7割 (x 70〜442) に収める -->
+  <rect width="512" height="512" fill="#F5EFE4"/>
+  <g fill="none" stroke="#8C5A32" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 -7)">
+    <!-- 支柱の上の飾り -->
+    <circle cx="256" cy="122" r="12"/>
+    <!-- 梁 -->
+    <path d="M135 156 H377"/>
+    <!-- 中央の支柱 -->
+    <path d="M256 134 V392"/>
+    <!-- 左の糸と皿 -->
+    <path d="M77 300 L135 156 L193 300"/>
+    <path d="M77 300 H193 Q135 352 77 300 Z"/>
+    <!-- 右の糸と皿 (左と同じ高さ) -->
+    <path d="M319 300 L377 156 L435 300"/>
+    <path d="M319 300 H435 Q377 352 319 300 Z"/>
+    <!-- 台座 -->
+    <path d="M206 416 L226 392 H286 L306 416"/>
+    <path d="M176 416 H336"/>
+  </g>
+</svg>

@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F5EFE4">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="どっち得">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>どっち得</title>
+<style>
+/* 温かいベージュ配色。端末がダークモードでもこの配色のまま */
+:root {
+  color-scheme: light;
+  --bg: #F5EFE4; --card: #FFFDF8; --line: #E3D7C3; --chip: #EFE5D4;
+  --text: #4A4036; --muted: #8A7B68;
+  --accent: #B7794C;        /* ボタン・1位の枠・選択中のタブとチップ・底値バッジ */
+  --accent-ink: #8C5A32;    /* アクセント色の小さな文字 (読みやすさのため少し濃く) */
+  --accent-soft: #F8EDE1; --accent-text: #FFFDF8;
+  --danger: #B5564A;        /* 削除など危険な操作 */
+  --warn: #B5564A; --warn-soft: #F6E4DF;
+  --shadow: 0 2px 10px rgba(120, 90, 40, 0.08);
+  --nav-h: 64px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+  font-size: 17px; line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+main {
+  max-width: 560px; margin: 0 auto;
+  padding: calc(env(safe-area-inset-top) + 12px) 16px calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px);
+}
+.tab-page[hidden] { display: none; }
+h1 { font-size: 24px; margin: 4px 0 12px; }
+
+/* モード切替 */
+.toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+.seg { display: flex; flex: 1; background: var(--chip); border-radius: 12px; padding: 3px; }
+.seg button {
+  flex: 1; border: 0; background: transparent; padding: 10px 0; border-radius: 9px;
+  font-weight: 600; color: var(--muted);
+}
+.seg button[aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: 0 1px 4px rgba(120, 90, 40, 0.14); }
+.ghost {
+  border: 1px solid var(--line); background: transparent; border-radius: 10px;
+  padding: 9px 12px; color: var(--muted); font-size: 15px;
+}
+.note {
+  background: var(--warn-soft); color: var(--warn); border-radius: 10px;
+  padding: 10px 12px; font-size: 14px; margin: 0 0 12px;
+}
+
+/* 候補カード */
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow);
+}
+.cand-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.tag {
+  flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--chip); font-weight: 700;
+}
+.cand.is-best .tag { background: var(--accent); color: var(--accent-text); }
+.name {
+  flex: 1; min-width: 0; border: 0; border-bottom: 1px solid var(--line); background: transparent;
+  padding: 6px 2px; font-size: 17px; border-radius: 0;
+}
+.name:focus { outline: none; border-bottom-color: var(--accent); }
+.rank {
+  flex: none; font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 99px;
+  background: var(--chip); color: var(--muted);
+}
+.rank:empty { display: none; }
+.cand.is-best .rank { background: var(--accent-soft); color: var(--accent-ink); }
+.icon-btn {
+  flex: none; border: 0; background: var(--chip); border-radius: 10px;
+  min-width: 44px; height: 40px; padding: 0 10px; font-size: 14px;
+}
+.icon-btn:disabled { opacity: .35; }
+.icon-btn[data-act="del"], .mini[data-act="del"] {
+  color: var(--danger); background: var(--card); box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.field { min-width: 0; }
+.field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.num-wrap {
+  display: flex; align-items: center; border: 1.5px solid var(--line); border-radius: 12px;
+  background: var(--bg); padding: 0 12px;
+}
+.num-wrap:focus-within { border-color: var(--accent); }
+.num-wrap.bad { border-color: var(--warn); }
+.num {
+  flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; outline: none;
+  font-size: 24px; font-weight: 600; padding: 10px 0; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.suffix { margin-left: 6px; color: var(--muted); font-size: 16px; }
+.units { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.units button {
+  border: 0; background: var(--chip); border-radius: 99px; min-width: 48px; height: 38px;
+  padding: 0 12px; font-weight: 600;
+}
+.units button[aria-pressed="true"],
+.rates button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); }
+
+/* ネットモード専用欄 (実店舗では隠すだけで値は保持) */
+body:not(.mode-net) .net-only { display: none !important; }
+.net-fields {
+  margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line);
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+}
+.net-fields .num { font-size: 20px; padding: 8px 0; }
+.net-fields .num-wrap { padding: 0 8px; }
+.net-fields .suffix { font-size: 14px; margin-left: 3px; }
+.rates { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.rates button {
+  border: 0; background: var(--chip); border-radius: 99px; min-width: 44px; height: 36px;
+  padding: 0 10px; font-weight: 600; font-size: 15px;
+}
+.bd { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* 履歴に保存 */
+.others li { flex-wrap: wrap; }
+.save-area { flex-basis: 100%; width: 100%; margin-top: 10px; }
+.winner .save-area { margin-top: 12px; }
+.save-btn {
+  width: 100%; height: 44px; border-radius: 12px; border: 1.5px solid var(--accent);
+  background: var(--card); color: var(--accent-ink); font-weight: 700; font-size: 15px;
+}
+.save-btn:disabled { border-color: var(--line); color: var(--muted); }
+.save-form, .rec.editing { display: grid; gap: 8px; }
+.save-form label, .rec.editing label { display: block; font-size: 13px; color: var(--muted); }
+.txt {
+  display: block; width: 100%; margin-top: 3px; border: 1.5px solid var(--line); border-radius: 10px;
+  background: var(--card); padding: 9px 10px; font-size: 17px; min-height: 44px;
+}
+.txt:focus { outline: none; border-color: var(--accent); }
+.err { color: var(--warn); font-size: 14px; margin: 0; }
+.err[hidden] { display: none; }
+.row-btns { display: flex; gap: 8px; }
+.row-btns button {
+  flex: 1; height: 44px; border-radius: 12px; border: 0; background: var(--chip); font-weight: 600;
+}
+.row-btns .primary { background: var(--accent); color: var(--accent-text); }
+
+/* 底値履歴 */
+.hgroup { padding: 14px 14px 4px; }
+.hhead { display: flex; align-items: baseline; gap: 8px; }
+.hname { font-size: 20px; font-weight: 700; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.hcount { color: var(--muted); font-size: 14px; flex: none; }
+.hsum { color: var(--accent-ink); font-size: 14px; font-weight: 600; margin-top: 2px; }
+.recs { list-style: none; padding: 0; margin: 8px 0 0; }
+.rec { border-top: 1px solid var(--line); padding: 10px 0; }
+.rec-top { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.rdate { font-weight: 600; color: var(--text); flex: none; }
+.rstore { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mtag { flex: none; font-size: 12px; padding: 1px 6px; border-radius: 6px; background: var(--chip); }
+.mini {
+  flex: none; border: 0; background: var(--chip); border-radius: 8px; height: 32px; padding: 0 10px;
+  font-size: 13px; color: var(--text);
+}
+.rec-main { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.reff { flex: 1; min-width: 0; font-size: 15px; }
+.reff small { color: var(--muted); margin-left: 4px; }
+.rup { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; margin-left: auto; }
+.rup small { font-size: 13px; font-weight: 500; color: var(--muted); margin-right: 4px; }
+.badge {
+  display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px;
+  background: #8C5A32; color: var(--accent-text); margin-right: 6px; vertical-align: 2px; /* 白文字のコントラストのため濃い茶 */
+}
+.rel { margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--warn); }
+.rel.is-bottom { color: var(--accent-ink); }
+.ltag {
+  display: inline-block; font-size: 12px; padding: 1px 6px; border-radius: 6px; margin-right: 6px;
+  background: var(--chip); color: var(--muted); font-weight: 600;
+}
+.lock { font-size: 13px; color: var(--muted); margin: 0; }
+
+.add {
+  width: 100%; border: 1.5px dashed var(--line); background: transparent; border-radius: 16px;
+  padding: 14px; font-weight: 600; color: var(--muted); margin-bottom: 20px;
+}
+.add:disabled { opacity: .4; }
+
+/* 結果 */
+.result h2 { font-size: 18px; margin: 0 0 8px; }
+.empty { color: var(--muted); text-align: center; padding: 18px 8px; }
+.winner { border: 2px solid var(--accent); background: var(--accent-soft); }
+.winner .lead { font-size: 14px; font-weight: 700; color: var(--accent-ink); }
+.winner .who { font-size: 22px; font-weight: 700; margin: 2px 0 6px; overflow-wrap: anywhere; }
+.big { font-size: 38px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.big small { font-size: 16px; font-weight: 600; color: var(--muted); margin-left: 4px; }
+.sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.gain {
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);
+  font-size: 18px; font-weight: 700;
+}
+.gain em { font-style: normal; color: var(--accent-ink); }
+.others { list-style: none; padding: 0; margin: 0; }
+.others li {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px; margin-bottom: 8px; box-shadow: var(--shadow);
+}
+.others .pos { font-weight: 700; color: var(--muted); width: 2.2em; flex: none; }
+.others .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.others .up { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.others .diff { display: block; font-size: 13px; color: var(--warn); font-weight: 500; }
+
+/* 下タブ */
+nav.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; display: flex;
+  background: var(--card); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+nav.tabs button {
+  flex: 1; height: var(--nav-h); border: 0; background: transparent; color: var(--muted);
+  font-size: 13px; font-weight: 600; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 2px;
+}
+nav.tabs button .ic { font-size: 22px; line-height: 1; }
+nav.tabs button[aria-selected="true"] { color: var(--accent-ink); box-shadow: inset 0 3px 0 var(--accent); }
+nav.tabs button[aria-selected="true"] .ic { color: var(--accent); }
+.placeholder { color: var(--muted); text-align: center; padding: 60px 16px; }
+.hint { color: var(--muted); font-size: 14px; margin: 0 0 10px; }
+
+/* 定番 */
+.staple {
+  display: block; width: 100%; text-align: left; background: var(--card); border: 1px solid var(--line);
+  border-radius: 16px; padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow);
+}
+.staple:active { background: var(--chip); }
+.st-top { display: flex; align-items: baseline; gap: 8px; }
+.st-name { flex: 1; min-width: 0; font-size: 19px; font-weight: 700; overflow-wrap: anywhere; }
+.st-meta { flex: none; font-size: 13px; color: var(--muted); }
+.st-min { display: block; color: var(--accent-ink); font-size: 14px; font-weight: 600; margin-top: 2px; }
+.st-go { display: block; color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+/* 書き出し・読み込み */
+.io { margin-top: 20px; display: grid; gap: 8px; }
+.io h2 { font-size: 18px; margin: 0; }
+.io .hint { margin: 0; }
+.io-label { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.io-text {
+  width: 100%; height: 110px; resize: vertical; border: 1.5px solid var(--line); border-radius: 10px;
+  background: var(--bg); padding: 8px 10px; font: 13px/1.4 ui-monospace, Menlo, monospace; color: var(--text);
+}
+.io-text:focus { outline: none; border-color: var(--accent); }
+.io-msg { margin: 0; font-size: 14px; font-weight: 600; }
+.io-msg.ok { color: var(--accent-ink); }
+.io-msg.ng { color: var(--warn); }
+.io-msg[hidden] { display: none; }
+
+.toast {
+  position: fixed; left: 16px; right: 16px; z-index: 10;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px);
+  max-width: 528px; margin: 0 auto; padding: 12px 14px; border-radius: 12px;
+  background: var(--text); color: var(--bg); font-size: 15px; box-shadow: 0 6px 20px rgba(120, 90, 40, 0.25);
+}
+.toast[hidden] { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <!-- 1. 比べる -->
+  <section class="tab-page" id="tab-compare">
+    <h1>比べる</h1>
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="モード">
+        <button type="button" data-mode="store" aria-pressed="true">実店舗</button>
+        <button type="button" data-mode="net" aria-pressed="false">ネット</button>
+      </div>
+      <button type="button" class="ghost" id="reset">リセット</button>
+    </div>
+    <div id="cands"></div>
+    <button type="button" class="add" id="add">＋ 候補を追加</button>
+    <section class="result" id="result" aria-live="polite"></section>
+  </section>
+
+  <!-- 2. 底値履歴 -->
+  <section class="tab-page" id="tab-history" hidden>
+    <h1>底値履歴</h1>
+    <div id="hist-list"></div>
+
+    <section class="card io" aria-labelledby="io-title">
+      <h2 id="io-title">データの書き出し・読み込み</h2>
+      <p class="hint">機種変更やバックアップ用です。読み込みは今の記録に追加します (上書きしません)。</p>
+      <label class="io-label" for="export-text">書き出し (全履歴のJSON)</label>
+      <textarea id="export-text" class="io-text" readonly></textarea>
+      <button type="button" class="save-btn" id="export-copy">コピー</button>
+      <p class="io-msg" id="export-msg" hidden></p>
+      <label class="io-label" for="import-text">読み込み (書き出したJSONを貼り付け)</label>
+      <textarea id="import-text" class="io-text" placeholder="ここに貼り付け" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+      <button type="button" class="save-btn" id="import-run">読み込む</button>
+      <p class="io-msg" id="import-msg" hidden></p>
+    </section>
+  </section>
+
+  <!-- 3. 定番 -->
+  <section class="tab-page" id="tab-staples" hidden>
+    <h1>定番</h1>
+    <div id="staples-list"></div>
+  </section>
+</main>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<nav class="tabs" role="tablist">
+  <button type="button" role="tab" data-tab="compare" aria-selected="true"><span class="ic">⚖︎</span>比べる</button>
+  <button type="button" role="tab" data-tab="history" aria-selected="false"><span class="ic">↧</span>底値履歴</button>
+  <button type="button" role="tab" data-tab="staples" aria-selected="false"><span class="ic">★</span>定番</button>
+</nav>
+
+<template id="cand-tpl">
+  <div class="card cand">
+    <div class="cand-head">
+      <span class="tag"></span>
+      <input class="name" type="text" placeholder="名前・店 (任意)" autocomplete="off" enterkeyhint="next">
+      <span class="rank"></span>
+      <button type="button" class="icon-btn" data-act="dup" aria-label="複製">複製</button>
+      <button type="button" class="icon-btn" data-act="del" aria-label="削除">✕</button>
+    </div>
+    <div class="fields">
+      <div class="field">
+        <label>価格 (税込)</label>
+        <div class="num-wrap"><input class="num" data-f="price" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next"><span class="suffix">円</span></div>
+      </div>
+      <div class="field">
+        <label>量</label>
+        <div class="num-wrap"><input class="num" data-f="qty" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done"><span class="suffix unit-suffix"></span></div>
+      </div>
+    </div>
+    <div class="units" role="group" aria-label="単位"></div>
+    <div class="net-fields net-only">
+      <div class="field">
+        <label>送料</label>
+        <div class="num-wrap"><input class="num" data-f="ship" data-zero="1" type="text" inputmode="decimal" placeholder="0" autocomplete="off" enterkeyhint="next"><span class="suffix">円</span></div>
+      </div>
+      <div class="field">
+        <label>クーポン</label>
+        <div class="num-wrap"><input class="num" data-f="coupon" data-zero="1" type="text" inputmode="decimal" placeholder="0" autocomplete="off" enterkeyhint="next"><span class="suffix">円</span></div>
+      </div>
+      <div class="field">
+        <label>還元率</label>
+        <div class="num-wrap"><input class="num" data-f="rate" data-zero="1" type="text" inputmode="decimal" placeholder="0" autocomplete="off" enterkeyhint="done"><span class="suffix">%</span></div>
+      </div>
+    </div>
+    <div class="rates net-only" role="group" aria-label="還元率"></div>
+  </div>
+</template>
+
+<script>
+'use strict';
+const $ = (s, el = document) => el.querySelector(s);
+const LS_DRAFT = 'docchi.draft.v1';
+const LETTERS = ['A', 'B', 'C', 'D'];
+const MAX = 4, MIN = 2;
+
+// 単位: group が同じものだけ比較できる。mult で基準単位へ、per で「○あたり」
+const UNITS = {
+  g:  { group: 'g',  mult: 1,    per: 100, label: '100gあたり' },
+  kg: { group: 'g',  mult: 1000, per: 100, label: '100gあたり' },
+  ml: { group: 'ml', mult: 1,    per: 100, label: '100mlあたり' },
+  L:  { group: 'ml', mult: 1000, per: 100, label: '100mlあたり' },
+  '個': { group: '個', mult: 1, per: 1, label: '1個あたり' },
+  '本': { group: '本', mult: 1, per: 1, label: '1本あたり' },
+  '枚': { group: '枚', mult: 1, per: 1, label: '1枚あたり' },
+};
+const UNIT_KEYS = Object.keys(UNITS);
+const RATE_CHIPS = [0, 1, 5, 10, 15, 20];
+const NET_FIELDS = ['ship', 'coupon', 'rate'];
+
+// ---------- 状態 ----------
+const uid = () => Math.random().toString(36).slice(2, 9);
+// 送料・クーポン・還元率は空欄 = 0 として扱う (欄には 0 をプレースホルダ表示)
+const blank = (unit = 'g') => ({ id: uid(), name: '', price: '', qty: '', unit, ship: '', coupon: '', rate: '' });
+// saved: { 候補id: { id: 記録id, product, store } } その候補で最後に保存した商品名 (保存済み判定と初期値に使う)
+const fresh = () => ({ mode: 'store', items: [blank(), blank()], saved: {} });
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(LS_DRAFT));
+    if (s && Array.isArray(s.items) && s.items.length >= MIN) return s;
+  } catch (e) {}
+  return null;
+}
+function save() {
+  try { localStorage.setItem(LS_DRAFT, JSON.stringify(state)); } catch (e) {}
+}
+let state = load() || fresh();
+if (!state.saved || typeof state.saved !== 'object') state.saved = {};
+
+// ---------- 価格履歴 (localStorage) ----------
+const LS_HIST = 'docchi.history.v1';
+function loadRecords() {
+  try {
+    const a = JSON.parse(localStorage.getItem(LS_HIST));
+    if (Array.isArray(a)) return a;
+  } catch (e) {}
+  return [];
+}
+function saveRecords() {
+  try { localStorage.setItem(LS_HIST, JSON.stringify(records)); return true; }
+  catch (e) { alert('保存できませんでした (ストレージがいっぱいか、プライベートブラウズの可能性があります)'); return false; }
+}
+let records = loadRecords();
+
+const pad = (n) => String(n).padStart(2, '0');
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function fmtDate(s) {
+  const [y, m, d] = String(s).split('-').map(Number);
+  if (!y || !m || !d) return esc(s);
+  const dow = '日月火水木金土'[new Date(y, m - 1, d).getDay()];
+  return `${y !== new Date().getFullYear() ? y + '/' : ''}${m}/${d}(${dow})`;
+}
+
+// 全角数字・カンマも受け付ける
+function num(s) {
+  if (s == null) return NaN;
+  s = String(s).replace(/[０-９．，]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/,/g, '').trim();
+  if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+  return parseFloat(s);
+}
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function yen(v) {
+  const d = v < 10 ? 2 : v < 1000 ? 1 : 0;
+  return '¥' + v.toLocaleString('ja-JP', { minimumFractionDigits: 0, maximumFractionDigits: d });
+}
+const yenInt = (v) => '¥' + Math.round(v).toLocaleString('ja-JP');
+
+// ---------- 候補カード ----------
+const candsEl = $('#cands');
+const tpl = $('#cand-tpl');
+
+function renderCands() {
+  candsEl.innerHTML = '';
+  state.items.forEach((it, i) => {
+    const el = tpl.content.firstElementChild.cloneNode(true);
+    el.dataset.id = it.id;
+    $('.tag', el).textContent = LETTERS[i];
+    $('.name', el).value = it.name;
+    $('[data-f="price"]', el).value = it.price;
+    $('[data-f="qty"]', el).value = it.qty;
+    NET_FIELDS.forEach((f) => { $(`[data-f="${f}"]`, el).value = it[f] ?? ''; });
+    const rates = $('.rates', el);
+    RATE_CHIPS.forEach((r) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.dataset.rate = String(r); b.textContent = r + '%';
+      rates.appendChild(b);
+    });
+    syncRate(el, it.rate);
+    $('[data-act="dup"]', el).disabled = state.items.length >= MAX;
+    $('[data-act="del"]', el).disabled = state.items.length <= MIN;
+    const units = $('.units', el);
+    UNIT_KEYS.forEach((u) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.dataset.unit = u; b.textContent = u;
+      units.appendChild(b);
+    });
+    syncUnit(el, it.unit);
+    candsEl.appendChild(el);
+  });
+  $('#add').disabled = state.items.length >= MAX;
+  renderResult();
+}
+
+function syncUnit(el, unit) {
+  el.querySelectorAll('.units button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.unit === unit)));
+  $('.unit-suffix', el).textContent = unit;
+}
+
+function syncRate(el, rate) {
+  const v = rate == null || String(rate).trim() === '' ? 0 : num(rate);
+  el.querySelectorAll('.rates button').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.rate) === v)));
+}
+
+// 価格・量は 0 より大きい数、送料・クーポン・還元率は 0 以上 (空欄可)
+function validField(inp) {
+  const s = inp.value.trim();
+  if (inp.dataset.zero) return s === '' || num(s) >= 0;
+  return s === '' || num(s) > 0;
+}
+
+const itemOf = (el) => state.items.find((x) => x.id === el.closest('.cand').dataset.id);
+
+candsEl.addEventListener('input', (e) => {
+  const t = e.target, it = itemOf(t);
+  if (!it) return;
+  if (t.classList.contains('name')) it.name = t.value;
+  else if (t.dataset.f) {
+    it[t.dataset.f] = t.value;
+    t.parentElement.classList.toggle('bad', !validField(t));
+    if (t.dataset.f === 'rate') syncRate(t.closest('.cand'), t.value);
+  }
+  save(); renderResult();
+});
+
+// 入力確定時に全角・カンマを半角数字に整える
+candsEl.addEventListener('change', (e) => {
+  const t = e.target, it = itemOf(t);
+  if (!it || !t.dataset.f) return;
+  const v = num(t.value);
+  if (v > 0 || (t.dataset.zero && v === 0)) { t.value = String(v); it[t.dataset.f] = t.value; save(); }
+});
+
+candsEl.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const card = b.closest('.cand'), it = itemOf(b);
+  if (b.dataset.unit) {
+    it.unit = b.dataset.unit; syncUnit(card, it.unit); save(); renderResult();
+  } else if (b.dataset.rate != null) {
+    it.rate = b.dataset.rate;
+    const inp = $('[data-f="rate"]', card);
+    inp.value = it.rate; inp.parentElement.classList.remove('bad');
+    syncRate(card, it.rate); save(); renderResult();
+  } else if (b.dataset.act === 'dup' && state.items.length < MAX) {
+    const copy = { ...it, id: uid() };
+    state.items.splice(state.items.indexOf(it) + 1, 0, copy);
+    save(); renderCands();
+    focusField(copy.id, 'qty'); // 大容量版を作る想定なので量へ
+  } else if (b.dataset.act === 'del' && state.items.length > MIN) {
+    state.items.splice(state.items.indexOf(it), 1);
+    save(); renderCands();
+  }
+});
+
+function focusField(id, f) {
+  const inp = candsEl.querySelector(`.cand[data-id="${id}"] [data-f="${f}"]`);
+  if (inp) { inp.focus(); inp.select(); inp.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+}
+
+$('#add').addEventListener('click', () => {
+  if (state.items.length >= MAX) return;
+  const last = state.items[state.items.length - 1];
+  const it = blank(last ? last.unit : 'g');
+  state.items.push(it);
+  save(); renderCands();
+  focusField(it.id, 'price');
+});
+
+$('#reset').addEventListener('click', () => {
+  if (!confirm('入力をすべて消しますか？')) return;
+  state = { ...fresh(), mode: state.mode };
+  for (const k in saveUI) delete saveUI[k];
+  save(); renderCands();
+});
+
+// ---------- モード ----------
+function renderMode() {
+  document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
+  document.body.classList.toggle('mode-net', state.mode === 'net');
+}
+$('.seg').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-mode]');
+  if (!b) return;
+  state.mode = b.dataset.mode; save(); renderMode(); renderResult();
+});
+
+// ---------- 計算と結果 ----------
+// 空欄は 0、数として読めなければ NaN
+const num0 = (s) => (s == null || String(s).trim() === '' ? 0 : num(s));
+
+// 実店舗: 実質価格 = 価格
+// ネット: ポイント額 = floor(価格 × 還元率%)、実質価格 = max(0, 価格 + 送料 - クーポン - ポイント額)
+// 実質単価 = 実質価格 ÷ (量 × 換算) × 基準量
+function compute() {
+  const net = state.mode === 'net';
+  return state.items.map((it, i) => {
+    const price = num(it.price), qty = num(it.qty), u = UNITS[it.unit];
+    if (!(price > 0 && qty > 0) || !u) return null;
+    let ship = 0, coupon = 0, rate = 0, point = 0, eff = price;
+    if (net) {
+      ship = num0(it.ship); coupon = num0(it.coupon); rate = num0(it.rate);
+      if (!(ship >= 0 && coupon >= 0 && rate >= 0)) return null; // 読めない値がある候補は外す
+      point = Math.floor(price * rate / 100 + 1e-9); // 浮動小数の誤差で1円落ちないように
+      eff = Math.max(0, price + ship - coupon - point);
+    }
+    const base = qty * u.mult;
+    return { it, i, price, qty, u, base, ship, coupon, rate, point, eff, up: eff / base * u.per };
+  }).filter(Boolean);
+}
+
+// ネット時の内訳 (実店舗では空)
+function breakdown(r) {
+  if (state.mode !== 'net') return '';
+  const parts = [`価格${yenInt(r.price)}`];
+  if (r.ship) parts.push(`送料+${yenInt(r.ship)}`);
+  if (r.coupon) parts.push(`クーポン−${yenInt(r.coupon)}`);
+  parts.push(`ポイント${Math.round(r.point).toLocaleString('ja-JP')}円分`);
+  return `実質${yenInt(r.eff)}（${parts.join('・')}）`;
+}
+const labelOf = (r) => r.it.name.trim() || `候補${LETTERS[r.i]}`;
+
+function renderResult() {
+  const box = $('#result');
+  candsEl.querySelectorAll('.cand').forEach((c) => { c.classList.remove('is-best'); $('.rank', c).textContent = ''; });
+
+  const rows = compute();
+  if (rows.length < 2) {
+    box.innerHTML = '<p class="empty">2件以上、価格と量を入れると<br>どっちが得か出ます</p>';
+    return;
+  }
+  const group = rows[0].u.group;
+  const ok = rows.filter((r) => r.u.group === group);
+  const ng = rows.filter((r) => r.u.group !== group);
+  if (ok.length < 2) {
+    box.innerHTML = '<p class="empty">単位の種類がそろっていないので比べられません<br>(g/kg、ml/L、個、本、枚 のどれかにそろえてください)</p>';
+    return;
+  }
+  ok.sort((a, b) => a.up - b.up || a.i - b.i);
+
+  const [w, s] = ok;
+  const tie = Math.abs(s.up - w.up) < 1e-9;
+  const pct = (s.up - w.up) / s.up * 100;
+  const once = (s.up - w.up) * (w.base / w.u.per); // 1位の量を2位の単価で買った場合との差
+
+  // 各カードに順位を付ける
+  ok.forEach((r, k) => {
+    const c = candsEl.querySelector(`.cand[data-id="${r.it.id}"]`);
+    if (!c) return;
+    $('.rank', c).textContent = `${k + 1}位`;
+    if (k === 0 && !tie) c.classList.add('is-best');
+  });
+
+  let html = '<h2>結果</h2>';
+  html += `<div class="card winner">
+    <div class="lead">${tie ? '同じ単価' : 'いちばん得'}</div>
+    <div class="who">${LETTERS[w.i]}　${esc(labelOf(w))}</div>
+    <div class="big">${yen(w.up)}<small>/ ${w.u.label.replace('あたり', '')}</small></div>
+    <div class="sub">${state.mode === 'net' ? breakdown(w) : yenInt(w.price)} ・ ${w.qty.toLocaleString('ja-JP')}${esc(w.it.unit)}</div>
+    <div class="gain">${tie
+      ? `${LETTERS[s.i]} と単価は同じです`
+      : `${LETTERS[s.i]} より 単価で <em>${pct < 0.1 ? pct.toFixed(2) : pct.toFixed(1)}%得</em>、1回で <em>${yenInt(once)}得</em>`}</div>
+    ${saveArea(w)}
+  </div>`;
+
+  if (ok.length > 1) {
+    html += '<ul class="others">';
+    ok.slice(1).forEach((r, k) => {
+      const d = r.up - w.up;
+      const dTxt = d < 1e-9 ? '1位と同じ' : w.up > 0 ? `+${yen(d)} (+${(d / w.up * 100).toFixed(1)}%)` : `+${yen(d)}`;
+      const bd = breakdown(r);
+      html += `<li><span class="pos">${k + 2}位</span>
+        <span class="nm">${LETTERS[r.i]}　${esc(labelOf(r))}${bd ? `<span class="bd">${bd}</span>` : ''}</span>
+        <span class="up">${yen(r.up)}<span class="diff">${dTxt}</span></span>${saveArea(r)}</li>`;
+    });
+    html += '</ul>';
+  }
+  if (ng.length) {
+    html += `<p class="note">${ng.map((r) => LETTERS[r.i]).join('・')} は単位の種類が違うので比較から外しています</p>`;
+  }
+  box.innerHTML = html;
+}
+
+// ---------- 結果から履歴に保存 ----------
+// saveUI: { 候補id: { product, store } } 開いている保存フォーム (結果の再描画をまたいで保持)
+const saveUI = {};
+const resultEl = $('#result');
+
+// 「同じ内容」の判定キー。日付を含めるので、翌日は同じ価格でも新しく記録できる
+const keyOfRow = (r) => JSON.stringify([today(), state.mode, r.price, r.qty, r.it.unit, r.ship, r.coupon, r.rate, r.eff]);
+const keyOfRec = (x) => JSON.stringify([x.date, x.mode, x.price, x.qty, x.unit, x.ship, x.coupon, x.rate, x.eff]);
+// この候補の今の内容が、同じ商品名で今日すでに記録されていればその記録を返す
+function savedRecord(r) {
+  const names = [state.saved[r.it.id]?.product, r.it.name.trim()].filter(Boolean);
+  const k = keyOfRow(r);
+  return records.find((x) => names.includes(x.product) && keyOfRec(x) === k) || null;
+}
+
+function saveArea(r) {
+  const cid = r.it.id;
+  const done = savedRecord(r);
+  if (done) {
+    return `<div class="save-area"><button type="button" class="save-btn" disabled>✓ 保存済み（${esc(done.product)}）</button></div>`;
+  }
+  const f = saveUI[cid];
+  if (!f) {
+    return `<div class="save-area"><button type="button" class="save-btn" data-act="open-save" data-cid="${cid}">この価格を履歴に保存</button></div>`;
+  }
+  return `<div class="save-area save-form" data-cid="${cid}">
+    <label>商品名 (必須)<input class="txt" data-sf="product" type="text" autocomplete="off" enterkeyhint="next" value="${esc(f.product)}"></label>
+    <label>店名 (任意)<input class="txt" data-sf="store" type="text" autocomplete="off" enterkeyhint="done" value="${esc(f.store)}"></label>
+    <p class="err" hidden>商品名を入れてください</p>
+    <div class="row-btns">
+      <button type="button" data-act="cancel-save" data-cid="${cid}">やめる</button>
+      <button type="button" class="primary" data-act="do-save" data-cid="${cid}">保存する</button>
+    </div>
+  </div>`;
+}
+
+function doSave(cid) {
+  const r = compute().find((x) => x.it.id === cid);
+  const f = saveUI[cid];
+  if (!r || !f) return;
+  const form = resultEl.querySelector(`.save-form[data-cid="${cid}"]`);
+  const product = (f.product || '').trim();
+  if (!product) {
+    if (form) { $('.err', form).hidden = false; $('[data-sf="product"]', form).focus(); }
+    return;
+  }
+  // 二重保存しない: 同じ商品名・同じ内容が今日すでにあれば「保存済み」にするだけ
+  const dup = records.find((x) => x.product === product && keyOfRec(x) === keyOfRow(r));
+  if (dup) {
+    state.saved[cid] = { id: dup.id, product, store: dup.store };
+    delete saveUI[cid];
+    save(); renderResult();
+    return;
+  }
+  const rec = {
+    id: uid() + Date.now().toString(36),
+    product, store: (f.store || '').trim(), date: today(), mode: state.mode,
+    price: r.price, qty: r.qty, unit: r.it.unit,
+    ship: r.ship, coupon: r.coupon, rate: r.rate, point: r.point,
+    eff: r.eff, up: Math.round(r.up * 1e6) / 1e6, basis: r.u.label,
+    createdAt: Date.now(),
+  };
+  records.push(rec);
+  if (!saveRecords()) { records.pop(); return; }
+  state.saved[cid] = { id: rec.id, product: rec.product, store: rec.store };
+  delete saveUI[cid];
+  save(); renderResult(); renderHistory();
+}
+
+resultEl.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-act]');
+  if (!b) return;
+  const cid = b.dataset.cid;
+  if (b.dataset.act === 'open-save') {
+    const it = state.items.find((x) => x.id === cid);
+    const prev = state.saved[cid] || {};
+    saveUI[cid] = { product: (it && it.name.trim()) || prev.product || '', store: prev.store || '' };
+    renderResult();
+    const inp = resultEl.querySelector(`.save-form[data-cid="${cid}"] [data-sf="product"]`);
+    if (inp) { inp.focus(); inp.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+  } else if (b.dataset.act === 'cancel-save') {
+    delete saveUI[cid]; renderResult();
+  } else if (b.dataset.act === 'do-save') {
+    doSave(cid);
+  }
+});
+resultEl.addEventListener('input', (e) => {
+  const t = e.target, form = t.closest('.save-form');
+  if (!form || !t.dataset.sf) return;
+  saveUI[form.dataset.cid][t.dataset.sf] = t.value;
+  if (t.dataset.sf === 'product' && t.value.trim()) $('.err', form).hidden = true;
+});
+resultEl.addEventListener('keydown', (e) => {
+  const form = e.target.closest('.save-form');
+  if (form && e.key === 'Enter' && !e.isComposing) { e.preventDefault(); doSave(form.dataset.cid); }
+});
+
+// ---------- 底値履歴タブ ----------
+const histEl = $('#hist-list');
+let editingId = null;
+const EPS = 1e-6;
+const newer = (a, b) => String(b.date).localeCompare(String(a.date)) || (b.createdAt || 0) - (a.createdAt || 0);
+function fmtDiff(d) {
+  return d.toLocaleString('ja-JP', { maximumFractionDigits: d < 10 ? 2 : 1 });
+}
+
+function renderHistory() {
+  updateExport();
+  if (!records.length) {
+    histEl.innerHTML = '<p class="placeholder">まだ記録がありません。<br>「比べる」の結果にある<br>「この価格を履歴に保存」で記録できます。</p>';
+    return;
+  }
+  // 新しい順に並べてからグループ化 → グループの並びも「最新記録が新しい順」になる
+  const groups = new Map();
+  [...records].sort(newer).forEach((r) => {
+    if (!groups.has(r.product)) groups.set(r.product, []);
+    groups.get(r.product).push(r);
+  });
+
+  let html = '';
+  for (const [name, recs] of groups) {
+    // 底値は「基準が同じ記録同士」で判定
+    const mins = {};
+    recs.forEach((r) => { if (!(r.basis in mins) || r.up < mins[r.basis]) mins[r.basis] = r.up; });
+    const sum = Object.entries(mins).map(([b, v]) => `底値 ${esc(b)} ${yen(v)}`).join(' / ');
+    html += `<div class="card hgroup">
+      <div class="hhead"><span class="hname">${esc(name)}</span><span class="hcount">${recs.length}件</span></div>
+      <div class="hsum">${sum}</div><ul class="recs">`;
+    recs.forEach((r, k) => {
+      const min = mins[r.basis];
+      const bottom = Math.abs(r.up - min) < EPS;
+      html += editingId === r.id ? editRow(r) : recRow(r, k === 0, bottom, min);
+    });
+    html += '</ul></div>';
+  }
+  histEl.innerHTML = html;
+}
+
+function recRow(r, latest, bottom, min) {
+  const rel = !latest ? '' : `<div class="rel${bottom ? ' is-bottom' : ''}"><span class="ltag">最新</span>${
+    bottom ? '底値' : `底値より${esc(r.basis)}${fmtDiff(r.up - min)}円高い`}</div>`;
+  return `<li class="rec" data-rid="${esc(r.id)}">
+    <div class="rec-top">
+      <span class="rdate">${fmtDate(r.date)}</span>
+      <span class="rstore">${r.store ? esc(r.store) : '店名なし'}</span>
+      ${r.mode === 'net' ? '<span class="mtag">ネット</span>' : ''}
+      <button type="button" class="mini" data-act="edit">編集</button>
+      <button type="button" class="mini" data-act="del">削除</button>
+    </div>
+    <div class="rec-main">
+      <span class="reff">実質${yenInt(r.eff)}<small>${Number(r.qty).toLocaleString('ja-JP')}${esc(r.unit)}</small></span>
+      <span class="rup">${bottom ? '<span class="badge">底値</span>' : ''}<small>${esc(r.basis)}</small>${yen(r.up)}</span>
+    </div>
+    ${rel}
+  </li>`;
+}
+
+function editRow(r) {
+  return `<li class="rec editing" data-rid="${esc(r.id)}">
+    <label>商品名 (必須)<input class="txt" data-ef="product" type="text" autocomplete="off" value="${esc(r.product)}"></label>
+    <label>店名 (任意)<input class="txt" data-ef="store" type="text" autocomplete="off" value="${esc(r.store || '')}"></label>
+    <label>日付<input class="txt" data-ef="date" type="date" value="${esc(r.date)}"></label>
+    <p class="lock">金額 (実質${yenInt(r.eff)}・${esc(r.basis)} ${yen(r.up)}) は保存時の記録なので変更できません</p>
+    <p class="err" hidden></p>
+    <div class="row-btns">
+      <button type="button" data-act="cancel-edit">やめる</button>
+      <button type="button" class="primary" data-act="save-edit">保存</button>
+    </div>
+  </li>`;
+}
+
+histEl.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-act]');
+  if (!b) return;
+  const li = b.closest('.rec'), rec = records.find((x) => x.id === li.dataset.rid);
+  if (!rec) return;
+  const act = b.dataset.act;
+  if (act === 'edit') {
+    editingId = rec.id; renderHistory();
+    const inp = histEl.querySelector('.rec.editing [data-ef="product"]');
+    if (inp) inp.focus();
+  } else if (act === 'cancel-edit') {
+    editingId = null; renderHistory();
+  } else if (act === 'save-edit') {
+    const product = $('[data-ef="product"]', li).value.trim();
+    const store = $('[data-ef="store"]', li).value.trim();
+    const date = $('[data-ef="date"]', li).value;
+    const err = $('.err', li);
+    if (!product) { err.textContent = '商品名を入れてください'; err.hidden = false; return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { err.textContent = '日付を入れてください'; err.hidden = false; return; }
+    const old = { product: rec.product, store: rec.store, date: rec.date };
+    Object.assign(rec, { product, store, date });
+    if (!saveRecords()) { Object.assign(rec, old); return; }
+    editingId = null; renderHistory(); renderResult();
+  } else if (act === 'del') {
+    const label = `${fmtDate(rec.date)} ${rec.store || '店名なし'}（${rec.basis} ${yen(rec.up)}）`;
+    if (!confirm(`「${rec.product}」の記録を削除しますか？\n${label}`)) return;
+    const i = records.indexOf(rec);
+    records.splice(i, 1);
+    if (!saveRecords()) { records.splice(i, 0, rec); return; }
+    if (editingId === rec.id) editingId = null;
+    renderHistory(); renderResult();
+  }
+});
+
+// ---------- 書き出し / 読み込み ----------
+const EXPORT_FORMAT = 1;
+const exportText = $('#export-text'), importText = $('#import-text');
+const exportMsg = $('#export-msg'), importMsg = $('#import-msg');
+
+function updateExport() {
+  exportText.value = JSON.stringify({
+    app: 'docchi-toku', format: EXPORT_FORMAT, exportedAt: new Date().toISOString(),
+    count: records.length, records,
+  }, null, 1);
+}
+
+function showMsg(el, text, ok) {
+  el.textContent = text;
+  el.className = 'io-msg ' + (ok ? 'ok' : 'ng');
+  el.hidden = false;
+}
+
+$('#export-copy').addEventListener('click', async () => {
+  updateExport(); // 書き出し日時を押した時点にする
+  try {
+    await navigator.clipboard.writeText(exportText.value);
+  } catch (e) {
+    // clipboard API が使えない環境向け
+    exportText.focus(); exportText.select();
+    exportText.setSelectionRange(0, exportText.value.length);
+    if (!document.execCommand('copy')) { showMsg(exportMsg, 'コピーできませんでした。上の文字を長押しで全選択してコピーしてください', false); return; }
+  }
+  showMsg(exportMsg, `${records.length}件の記録をコピーしました`, true);
+});
+
+// 1件分を検証して形をそろえる。読めなければ null
+function normalizeRecord(x) {
+  if (!x || typeof x !== 'object') return null;
+  const n = (v) => (typeof v === 'number' ? v : Number(v));
+  const product = typeof x.product === 'string' ? x.product.trim() : '';
+  const r = {
+    id: typeof x.id === 'string' && x.id ? x.id : uid() + Date.now().toString(36),
+    product, store: typeof x.store === 'string' ? x.store.trim() : '',
+    date: String(x.date || ''), mode: x.mode === 'net' ? 'net' : 'store',
+    price: n(x.price), qty: n(x.qty), unit: String(x.unit || ''),
+    ship: n(x.ship || 0), coupon: n(x.coupon || 0), rate: n(x.rate || 0), point: n(x.point || 0),
+    eff: n(x.eff), up: n(x.up), basis: typeof x.basis === 'string' ? x.basis : '',
+    createdAt: Number.isFinite(n(x.createdAt)) ? n(x.createdAt) : Date.now(),
+  };
+  const nums = ['price', 'qty', 'ship', 'coupon', 'rate', 'point', 'eff', 'up'];
+  if (!product || !/^\d{4}-\d{2}-\d{2}$/.test(r.date) || !UNITS[r.unit] || !r.basis) return null;
+  if (!nums.every((k) => Number.isFinite(r[k]) && r[k] >= 0) || !(r.qty > 0)) return null;
+  return r;
+}
+
+$('#import-run').addEventListener('click', () => {
+  const text = importText.value.trim();
+  if (!text) { showMsg(importMsg, '読み込むJSONを貼り付けてください', false); return; }
+  let data;
+  try { data = JSON.parse(text); } catch (e) {
+    showMsg(importMsg, 'JSONとして読めませんでした。データは変更していません', false); return;
+  }
+  const list = Array.isArray(data) ? data : data && Array.isArray(data.records) ? data.records : null;
+  if (!list) { showMsg(importMsg, 'どっち得の書き出しデータではありません。データは変更していません', false); return; }
+  if (data.format && data.format > EXPORT_FORMAT) {
+    showMsg(importMsg, 'このアプリより新しい形式のデータです。データは変更していません', false); return;
+  }
+
+  // 二重保存と同じ基準 (商品名 + 日付・モード・価格・量・単位・送料・クーポン・還元率・実質価格) で重複を除く
+  const seen = new Set(records.map((x) => x.product + '\u0000' + keyOfRec(x)));
+  const ids = new Set(records.map((x) => x.id));
+  const add = [];
+  let dup = 0, bad = 0;
+  for (const raw of list) {
+    const r = normalizeRecord(raw);
+    if (!r) { bad++; continue; }
+    const k = r.product + '\u0000' + keyOfRec(r);
+    if (seen.has(k)) { dup++; continue; }
+    seen.add(k);
+    if (ids.has(r.id)) r.id = uid() + Date.now().toString(36);
+    ids.add(r.id);
+    add.push(r);
+  }
+  if (add.length) {
+    records.push(...add);
+    if (!saveRecords()) { records.splice(records.length - add.length, add.length); return; }
+  }
+  let msg = `${add.length}件を追加しました（同じ記録 ${dup}件は除きました）`;
+  if (bad) msg += `。読めない記録 ${bad}件も除きました`;
+  showMsg(importMsg, msg, true);
+  if (add.length) importText.value = '';
+  renderHistory(); renderResult(); renderStaples();
+});
+
+// ---------- 定番タブ ----------
+const staplesEl = $('#staples-list');
+let toastTimer = null;
+function toast(text) {
+  const t = $('#toast');
+  t.textContent = text; t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 3000);
+}
+
+// 商品ごとに { name, recs (新しい順), latest, mins: {基準: 最安単価} }。並びは最新記録が新しい順
+function productGroups() {
+  const groups = new Map();
+  [...records].sort(newer).forEach((r) => {
+    if (!groups.has(r.product)) groups.set(r.product, []);
+    groups.get(r.product).push(r);
+  });
+  return [...groups].map(([name, recs]) => {
+    const mins = {};
+    recs.forEach((r) => { if (!(r.basis in mins) || r.up < mins[r.basis]) mins[r.basis] = r.up; });
+    return { name, recs, latest: recs[0], mins };
+  });
+}
+
+function renderStaples() {
+  const gs = productGroups();
+  if (!gs.length) {
+    staplesEl.innerHTML = '<p class="placeholder">まだ定番がありません。<br>「比べる」の結果から履歴に保存すると、<br>その商品がここに並びます。</p>';
+    return;
+  }
+  staplesEl.innerHTML = '<p class="hint">タップすると「比べる」に候補を追加します</p>' + gs.map((g, i) => `
+    <button type="button" class="staple" data-i="${i}">
+      <span class="st-top"><span class="st-name">${esc(g.name)}</span><span class="st-meta">${g.recs.length}件・最新 ${fmtDate(g.latest.date)}</span></span>
+      <span class="st-min">${Object.entries(g.mins).map(([b, v]) => `底値 ${esc(b)} ${yen(v)}`).join(' / ')}</span>
+      <span class="st-go">${Number(g.latest.qty).toLocaleString('ja-JP')}${esc(g.latest.unit)} で比べる ›</span>
+    </button>`).join('');
+}
+
+staplesEl.addEventListener('click', (e) => {
+  const b = e.target.closest('button.staple');
+  if (!b) return;
+  const g = productGroups()[Number(b.dataset.i)];
+  if (!g) return;
+  if (state.items.length >= MAX) {
+    toast(`候補がすでに${MAX}件あるので追加できません。「比べる」で1件消してから選んでください`);
+    return;
+  }
+  const it = { ...blank(g.latest.unit), name: g.name, qty: String(g.latest.qty) };
+  state.items.push(it);
+  save();
+  showTab('compare');
+  renderCands();
+  focusField(it.id, 'price');
+});
+
+// ---------- タブ ----------
+function showTab(name) {
+  if (name === 'history') renderHistory();
+  if (name === 'staples') renderStaples();
+  document.querySelectorAll('nav.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x.dataset.tab === name)));
+  document.querySelectorAll('.tab-page').forEach((p) => { p.hidden = p.id !== 'tab-' + name; });
+  window.scrollTo(0, 0);
+}
+document.querySelector('nav.tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-tab]');
+  if (b) showTab(b.dataset.tab);
+});
+
+// ---------- 起動 ----------
+renderMode();
+renderCands();
+renderHistory();
+// file:// で開いたときは Service Worker を登録しない (http/https のみ)
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW登録失敗', e)));
+}
+</script>
+</body>
+</html>
