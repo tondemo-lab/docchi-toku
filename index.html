@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#F5EFE4">
 <meta name="color-scheme" content="light">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,13 +29,17 @@
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
+/* ダブルタップでの拡大を防ぐ (スクロールはそのまま) */
+html, body, button, input, select, textarea, label { touch-action: manipulation; }
 body {
   margin: 0; background: var(--bg); color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
   font-size: 17px; line-height: 1.5;
   -webkit-tap-highlight-color: transparent;
 }
-button, input, select { font: inherit; color: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
+/* 入力欄は 16px 以上 (iPhone が入力時に自動で拡大しないように)。個別の指定はすべてこれ以上 */
+input, select, textarea { font-size: 16px; }
 button { cursor: pointer; }
 
 main {
@@ -131,6 +135,8 @@ body:not(.mode-net) .net-only { display: none !important; }
   padding: 0 10px; font-weight: 600; font-size: 15px;
 }
 .bd { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+/* 2位以下の内訳: 名前と単価の下にカードの全幅で置き、最大2行に収める */
+.others .bd-row { flex-basis: 100%; margin-top: -4px; line-height: 1.45; }
 
 /* 履歴に保存 */
 .others li { flex-wrap: wrap; }
@@ -309,7 +315,7 @@ nav.tabs button[aria-selected="true"] .ic { color: var(--accent); }
 .io-label { font-size: 13px; color: var(--muted); margin-top: 6px; }
 .io-text {
   width: 100%; height: 110px; resize: vertical; border: 1.5px solid var(--line); border-radius: 10px;
-  background: var(--bg); padding: 8px 10px; font: 13px/1.4 ui-monospace, Menlo, monospace; color: var(--text);
+  background: var(--bg); padding: 8px 10px; font: 16px/1.4 ui-monospace, Menlo, monospace; color: var(--text);
 }
 .io-text:focus { outline: none; border-color: var(--accent); }
 .io-msg { margin: 0; font-size: 14px; font-weight: 600; }
@@ -718,8 +724,8 @@ function renderResult() {
       const dTxt = d < 1e-9 ? '1位と同じ' : w.up > 0 ? `+${yen(d)} (+${(d / w.up * 100).toFixed(1)}%)` : `+${yen(d)}`;
       const bd = breakdown(r);
       html += `<li><span class="pos">${k + 2}位</span>
-        <span class="nm">${LETTERS[r.i]}　${esc(labelOf(r))}${bd ? `<span class="bd">${bd}</span>` : ''}</span>
-        <span class="up">${yen(r.up)}<span class="diff">${dTxt}</span></span>${saveArea(r)}</li>`;
+        <span class="nm">${LETTERS[r.i]}　${esc(labelOf(r))}</span>
+        <span class="up">${yen(r.up)}<span class="diff">${dTxt}</span></span>${bd ? `<span class="bd bd-row">${bd}</span>` : ''}${saveArea(r)}</li>`;
     });
     html += '</ul>';
   }
@@ -1481,6 +1487,8 @@ renderMode();
 renderCands();
 renderHistory();
 showTab('stores'); // 店舗タブから始める (前回開いていたフォルダがあればそのフォルダ)
+// ピンチでの拡大を防ぐ (iOS Safari の gesture イベント。1本指のスクロールには関係しない)
+['gesturestart', 'gesturechange'].forEach((t) => document.addEventListener(t, (e) => e.preventDefault(), { passive: false }));
 // file:// で開いたときは Service Worker を登録しない (http/https のみ)
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW登録失敗', e)));

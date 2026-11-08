@@ -2,7 +2,7 @@
   <!-- どっち得 アイコン元データ: はかり (天秤) の線画。ここから icon-192.png / icon-512.png を書き出す -->
   <!-- 地は全面ベージュ (iOS が角を丸める)。図柄は幅の約7割 (x 70〜442) に収める -->
   <rect width="512" height="512" fill="#F5EFE4"/>
-  <g fill="none" stroke="#8C5A32" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 -7)">
+  <g fill="none" stroke="#8C5A32" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 -7)">
     <!-- 支柱の上の飾り -->
     <circle cx="256" cy="122" r="12"/>
     <!-- 梁 -->
