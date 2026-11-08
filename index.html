@@ -236,17 +236,71 @@ nav.tabs button[aria-selected="true"] .ic { color: var(--accent); }
 .placeholder { color: var(--muted); text-align: center; padding: 60px 16px; }
 .hint { color: var(--muted); font-size: 14px; margin: 0 0 10px; }
 
-/* 定番 */
-.staple {
+/* 店舗タブ: 一覧 */
+.srow {
   display: block; width: 100%; text-align: left; background: var(--card); border: 1px solid var(--line);
   border-radius: 16px; padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow);
 }
-.staple:active { background: var(--chip); }
-.st-top { display: flex; align-items: baseline; gap: 8px; }
-.st-name { flex: 1; min-width: 0; font-size: 19px; font-weight: 700; overflow-wrap: anywhere; }
-.st-meta { flex: none; font-size: 13px; color: var(--muted); }
-.st-min { display: block; color: var(--accent-ink); font-size: 14px; font-weight: 600; margin-top: 2px; }
-.st-go { display: block; color: var(--muted); font-size: 13px; margin-top: 6px; }
+.srow:active, .prow:active { background: var(--chip); }
+.sr-top { display: flex; align-items: baseline; gap: 8px; }
+.sr-name { flex: 1; min-width: 0; font-size: 19px; font-weight: 700; overflow-wrap: anywhere; }
+.sr-name.noname { color: var(--muted); }
+.sr-go { flex: none; color: var(--muted); font-size: 20px; line-height: 1; }
+.sr-meta { display: block; font-size: 14px; color: var(--muted); margin-top: 2px; }
+.newstore { display: grid; gap: 8px; }
+
+/* 店舗タブ: フォルダの中 */
+.back {
+  border: 0; background: transparent; color: var(--accent-ink); font-weight: 600; font-size: 16px;
+  padding: 6px 0; margin: 0 0 2px; min-height: 40px;
+}
+.fhead { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.fhead h1 { flex: 1; min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.rename { display: grid; gap: 8px; }
+.psec { font-size: 14px; color: var(--muted); font-weight: 700; margin: 18px 0 8px; }
+.plist { background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+.pitem + .pitem { border-top: 1px solid var(--line); }
+.prow {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; text-align: left;
+  border: 0; background: transparent; padding: 10px 14px;
+}
+.pitem.open .prow { background: var(--accent-soft); }
+.pr-name { flex: 1; min-width: 0; font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
+.pr-last { flex: none; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.pr-last small { display: block; font-size: 12px; font-weight: 500; color: var(--muted); }
+.pr-none { flex: none; font-size: 13px; color: var(--muted); }
+.pempty { color: var(--muted); font-size: 14px; padding: 14px; margin: 0; }
+
+/* 記録フォーム */
+.rform { display: grid; gap: 10px; margin: 0; border-radius: 0; box-shadow: none; border: 0; border-top: 1px dashed var(--line); background: var(--accent-soft); }
+.rform.top { border: 1.5px solid var(--accent); border-radius: 16px; margin-bottom: 12px; }
+.rform .units, .rform .rates { margin-top: 0; }
+.rform .net-fields { margin-top: 0; }
+.rform:not(.is-net) .rf-net { display: none !important; }
+.rf-lab { display: block; font-size: 13px; color: var(--muted); }
+.rf-meta { font-size: 12px; color: var(--muted); }
+.rf-hint { font-size: 13px; color: var(--muted); margin: 0; }
+.rf-prev { font-size: 15px; font-weight: 700; color: var(--accent-ink); margin: 0; overflow-wrap: anywhere; }
+.rf-prev small { display: block; font-size: 13px; font-weight: 500; color: var(--muted); }
+
+/* 底値履歴: 店ごとの最新価格 */
+.hhead .mini { align-self: center; }
+.bystore { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bg); }
+.bs-title { font-size: 13px; font-weight: 700; color: var(--muted); }
+.bs-basis { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.bs-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.bs-row + .bs-row { border-top: 1px solid var(--line); }
+.bs-store { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.bs-store small { display: block; font-size: 12px; font-weight: 500; color: var(--muted); }
+.bs-date { flex: none; font-size: 12px; color: var(--muted); }
+.bs-up { flex: none; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 4.5em; text-align: right; }
+.mintag {
+  display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 99px;
+  background: #8C5A32; color: var(--accent-text); margin-right: 6px; vertical-align: 2px;
+}
+.bs-row.is-min .bs-up { color: var(--accent-ink); }
+#stores-view .add { margin-bottom: 4px; }
+.pitem { scroll-margin-top: 12px; }
 
 /* 書き出し・読み込み */
 .io { margin-top: 20px; display: grid; gap: 8px; }
@@ -274,8 +328,13 @@ nav.tabs button[aria-selected="true"] .ic { color: var(--accent); }
 </head>
 <body>
 <main>
-  <!-- 1. 比べる -->
-  <section class="tab-page" id="tab-compare">
+  <!-- 1. 店舗 (店舗フォルダの一覧 / フォルダの中で記録) -->
+  <section class="tab-page" id="tab-stores">
+    <div id="stores-view"></div>
+  </section>
+
+  <!-- 2. 比べる -->
+  <section class="tab-page" id="tab-compare" hidden>
     <h1>比べる</h1>
     <div class="toolbar">
       <div class="seg" role="group" aria-label="モード">
@@ -289,7 +348,7 @@ nav.tabs button[aria-selected="true"] .ic { color: var(--accent); }
     <section class="result" id="result" aria-live="polite"></section>
   </section>
 
-  <!-- 2. 底値履歴 -->
+  <!-- 3. 底値履歴 -->
   <section class="tab-page" id="tab-history" hidden>
     <h1>底値履歴</h1>
     <div id="hist-list"></div>
@@ -307,20 +366,14 @@ nav.tabs button[aria-selected="true"] .ic { color: var(--accent); }
       <p class="io-msg" id="import-msg" hidden></p>
     </section>
   </section>
-
-  <!-- 3. 定番 -->
-  <section class="tab-page" id="tab-staples" hidden>
-    <h1>定番</h1>
-    <div id="staples-list"></div>
-  </section>
 </main>
 
 <div id="toast" class="toast" role="status" hidden></div>
 
 <nav class="tabs" role="tablist">
-  <button type="button" role="tab" data-tab="compare" aria-selected="true"><span class="ic">⚖︎</span>比べる</button>
+  <button type="button" role="tab" data-tab="stores" aria-selected="true"><span class="ic">⌂</span>店舗</button>
+  <button type="button" role="tab" data-tab="compare" aria-selected="false"><span class="ic">⚖︎</span>比べる</button>
   <button type="button" role="tab" data-tab="history" aria-selected="false"><span class="ic">↧</span>底値履歴</button>
-  <button type="button" role="tab" data-tab="staples" aria-selected="false"><span class="ic">★</span>定番</button>
 </nav>
 
 <template id="cand-tpl">
@@ -564,10 +617,10 @@ $('#reset').addEventListener('click', () => {
 
 // ---------- モード ----------
 function renderMode() {
-  document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
+  document.querySelectorAll('#tab-compare .seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
   document.body.classList.toggle('mode-net', state.mode === 'net');
 }
-$('.seg').addEventListener('click', (e) => {
+$('#tab-compare .seg').addEventListener('click', (e) => {
   const b = e.target.closest('button[data-mode]');
   if (!b) return;
   state.mode = b.dataset.mode; save(); renderMode(); renderResult();
@@ -580,26 +633,33 @@ const num0 = (s) => (s == null || String(s).trim() === '' ? 0 : num(s));
 // 実店舗: 実質価格 = 価格
 // ネット: ポイント額 = floor(価格 × 還元率%)、実質価格 = max(0, 価格 + 送料 - クーポン - ポイント額)
 // 実質単価 = 実質価格 ÷ (量 × 換算) × 基準量
+// 1件分の計算 (比べるタブと店舗フォルダの記録フォームで共通)。読めなければ null
+function calcItem(it, net) {
+  const price = num(it.price), qty = num(it.qty), u = UNITS[it.unit];
+  if (!(price > 0 && qty > 0) || !u) return null;
+  let ship = 0, coupon = 0, rate = 0, point = 0, eff = price;
+  if (net) {
+    ship = num0(it.ship); coupon = num0(it.coupon); rate = num0(it.rate);
+    if (!(ship >= 0 && coupon >= 0 && rate >= 0)) return null; // 読めない値がある候補は外す
+    point = Math.floor(price * rate / 100 + 1e-9); // 浮動小数の誤差で1円落ちないように
+    eff = Math.max(0, price + ship - coupon - point);
+  }
+  const base = qty * u.mult;
+  return { price, qty, u, base, ship, coupon, rate, point, eff, up: eff / base * u.per };
+}
 function compute() {
   const net = state.mode === 'net';
   return state.items.map((it, i) => {
-    const price = num(it.price), qty = num(it.qty), u = UNITS[it.unit];
-    if (!(price > 0 && qty > 0) || !u) return null;
-    let ship = 0, coupon = 0, rate = 0, point = 0, eff = price;
-    if (net) {
-      ship = num0(it.ship); coupon = num0(it.coupon); rate = num0(it.rate);
-      if (!(ship >= 0 && coupon >= 0 && rate >= 0)) return null; // 読めない値がある候補は外す
-      point = Math.floor(price * rate / 100 + 1e-9); // 浮動小数の誤差で1円落ちないように
-      eff = Math.max(0, price + ship - coupon - point);
-    }
-    const base = qty * u.mult;
-    return { it, i, price, qty, u, base, ship, coupon, rate, point, eff, up: eff / base * u.per };
+    const c = calcItem(it, net);
+    return c && { it, i, ...c };
   }).filter(Boolean);
 }
 
 // ネット時の内訳 (実店舗では空)
 function breakdown(r) {
-  if (state.mode !== 'net') return '';
+  return state.mode === 'net' ? breakdownOf(r) : '';
+}
+function breakdownOf(r) {
   const parts = [`価格${yenInt(r.price)}`];
   if (r.ship) parts.push(`送料+${yenInt(r.ship)}`);
   if (r.coupon) parts.push(`クーポン−${yenInt(r.coupon)}`);
@@ -705,6 +765,18 @@ function saveArea(r) {
   </div>`;
 }
 
+// 記録の形 (比べるタブ・店舗フォルダで共通)。c は calcItem / compute の結果
+function makeRecord(product, store, mode, c, unit) {
+  return {
+    id: uid() + Date.now().toString(36),
+    product, store, date: today(), mode,
+    price: c.price, qty: c.qty, unit,
+    ship: c.ship, coupon: c.coupon, rate: c.rate, point: c.point,
+    eff: c.eff, up: Math.round(c.up * 1e6) / 1e6, basis: c.u.label,
+    createdAt: Date.now(),
+  };
+}
+
 function doSave(cid) {
   const r = compute().find((x) => x.it.id === cid);
   const f = saveUI[cid];
@@ -723,14 +795,7 @@ function doSave(cid) {
     save(); renderResult();
     return;
   }
-  const rec = {
-    id: uid() + Date.now().toString(36),
-    product, store: (f.store || '').trim(), date: today(), mode: state.mode,
-    price: r.price, qty: r.qty, unit: r.it.unit,
-    ship: r.ship, coupon: r.coupon, rate: r.rate, point: r.point,
-    eff: r.eff, up: Math.round(r.up * 1e6) / 1e6, basis: r.u.label,
-    createdAt: Date.now(),
-  };
+  const rec = makeRecord(product, (f.store || '').trim(), state.mode, r, r.it.unit);
   records.push(rec);
   if (!saveRecords()) { records.pop(); return; }
   state.saved[cid] = { id: rec.id, product: rec.product, store: rec.store };
@@ -778,33 +843,52 @@ function fmtDiff(d) {
 function renderHistory() {
   updateExport();
   if (!records.length) {
-    histEl.innerHTML = '<p class="placeholder">まだ記録がありません。<br>「比べる」の結果にある<br>「この価格を履歴に保存」で記録できます。</p>';
+    histEl.innerHTML = '<p class="placeholder">まだ記録がありません。<br>「店舗」でお店のフォルダを開いて記録するか、<br>「比べる」の結果から保存できます。</p>';
     return;
   }
-  // 新しい順に並べてからグループ化 → グループの並びも「最新記録が新しい順」になる
-  const groups = new Map();
-  [...records].sort(newer).forEach((r) => {
-    if (!groups.has(r.product)) groups.set(r.product, []);
-    groups.get(r.product).push(r);
-  });
-
+  // グループの並びは「最新記録が新しい順」、グループ内も新しい順
   let html = '';
-  for (const [name, recs] of groups) {
+  productGroups().forEach(({ name, recs, mins }, gi) => {
     // 底値は「基準が同じ記録同士」で判定
-    const mins = {};
-    recs.forEach((r) => { if (!(r.basis in mins) || r.up < mins[r.basis]) mins[r.basis] = r.up; });
     const sum = Object.entries(mins).map(([b, v]) => `底値 ${esc(b)} ${yen(v)}`).join(' / ');
     html += `<div class="card hgroup">
-      <div class="hhead"><span class="hname">${esc(name)}</span><span class="hcount">${recs.length}件</span></div>
-      <div class="hsum">${sum}</div><ul class="recs">`;
+      <div class="hhead"><span class="hname">${esc(name)}</span><span class="hcount">${recs.length}件</span>
+        <button type="button" class="mini" data-act="to-compare" data-gi="${gi}">比べるに追加</button></div>
+      <div class="hsum">${sum}</div>${byStoreHTML(recs)}<ul class="recs">`;
     recs.forEach((r, k) => {
       const min = mins[r.basis];
       const bottom = Math.abs(r.up - min) < EPS;
       html += editingId === r.id ? editRow(r) : recRow(r, k === 0, bottom, min);
     });
     html += '</ul></div>';
-  }
+  });
   histEl.innerHTML = html;
+}
+
+// 店ごとの最新価格: 基準ごとに、各店の最新記録だけを実質単価の安い順に。2店以上なら一番安い店に印
+function byStoreHTML(recs) {
+  const byBasis = new Map(); // 基準 → Map(店 → その店の最新記録)。recs は新しい順なので最初の1件が最新
+  recs.forEach((r) => {
+    if (!byBasis.has(r.basis)) byBasis.set(r.basis, new Map());
+    const m = byBasis.get(r.basis), k = r.store || '';
+    if (!m.has(k)) m.set(k, r);
+  });
+  let html = '<div class="bystore"><div class="bs-title">店ごとの最新価格</div>';
+  for (const [basis, m] of byBasis) {
+    const rows = [...m.values()].sort((a, b) => a.up - b.up || newer(a, b));
+    const min = rows[0].up;
+    html += `<div class="bs-basis">${esc(basis)}・安い順</div>`;
+    rows.forEach((r) => {
+      const best = rows.length > 1 && Math.abs(r.up - min) < EPS;
+      html += `<div class="bs-row${best ? ' is-min' : ''}">
+        <span class="bs-store">${best ? '<span class="mintag">最安</span>' : ''}${r.store ? esc(r.store) : '店名なし'}
+          <small>${r.mode === 'net' ? '実質' : ''}${yenInt(r.eff)}・${Number(r.qty).toLocaleString('ja-JP')}${esc(r.unit)}</small></span>
+        <span class="bs-date">${fmtDate(r.date)}</span>
+        <span class="bs-up">${yen(r.up)}</span>
+      </div>`;
+    });
+  }
+  return html + '</div>';
 }
 
 function recRow(r, latest, bottom, min) {
@@ -843,7 +927,12 @@ function editRow(r) {
 histEl.addEventListener('click', (e) => {
   const b = e.target.closest('button[data-act]');
   if (!b) return;
-  const li = b.closest('.rec'), rec = records.find((x) => x.id === li.dataset.rid);
+  if (b.dataset.act === 'to-compare') {
+    const g = productGroups()[Number(b.dataset.gi)];
+    if (g) addToCompare(g);
+    return;
+  }
+  const li = b.closest('.rec'), rec = li && records.find((x) => x.id === li.dataset.rid);
   if (!rec) return;
   const act = b.dataset.act;
   if (act === 'edit') {
@@ -883,6 +972,8 @@ function updateExport() {
   exportText.value = JSON.stringify({
     app: 'docchi-toku', format: EXPORT_FORMAT, exportedAt: new Date().toISOString(),
     count: records.length, records,
+    // 店舗リスト (記録のない店舗も含む)。古い版のアプリはこの欄を読み飛ばすので形式番号は 1 のまま
+    stores: storeFolders().map((s) => s.key).filter(Boolean),
   }, null, 1);
 }
 
@@ -938,34 +1029,49 @@ $('#import-run').addEventListener('click', () => {
     showMsg(importMsg, 'このアプリより新しい形式のデータです。データは変更していません', false); return;
   }
 
-  // 二重保存と同じ基準 (商品名 + 日付・モード・価格・量・単位・送料・クーポン・還元率・実質価格) で重複を除く
-  const seen = new Set(records.map((x) => x.product + '\u0000' + keyOfRec(x)));
+  // 二重保存と同じ基準 (商品名 + 店名 + 日付・モード・価格・量・単位・送料・クーポン・還元率・実質価格) で重複を除く
+  // 店名も含める: 店舗フォルダでは同じ日に同じ価格を別の店で記録できるため
+  const dkey = (x) => x.product + '\u0000' + (x.store || '') + '\u0000' + keyOfRec(x);
+  const seen = new Set(records.map(dkey));
   const ids = new Set(records.map((x) => x.id));
   const add = [];
   let dup = 0, bad = 0;
   for (const raw of list) {
     const r = normalizeRecord(raw);
     if (!r) { bad++; continue; }
-    const k = r.product + '\u0000' + keyOfRec(r);
+    const k = dkey(r);
     if (seen.has(k)) { dup++; continue; }
     seen.add(k);
     if (ids.has(r.id)) r.id = uid() + Date.now().toString(36);
     ids.add(r.id);
     add.push(r);
   }
+  // 店舗リスト: まだないフォルダだけ足す (記録の店名から作られるフォルダと同じ名前は数えない)
+  const have = new Set(storeFolders().map((s) => s.key));
+  add.forEach((r) => have.add(r.store || ''));
+  const newStores = [];
+  (Array.isArray(data.stores) ? data.stores : []).forEach((s) => {
+    const name = typeof s === 'string' ? s.trim() : '';
+    if (name && !stores.includes(name) && !newStores.includes(name)) newStores.push(name);
+  });
+  const shownNew = newStores.filter((n) => !have.has(n)).length;
   if (add.length) {
     records.push(...add);
     if (!saveRecords()) { records.splice(records.length - add.length, add.length); return; }
   }
+  if (newStores.length) {
+    stores.push(...newStores);
+    if (!saveStores()) stores.splice(stores.length - newStores.length, newStores.length);
+  }
   let msg = `${add.length}件を追加しました（同じ記録 ${dup}件は除きました）`;
   if (bad) msg += `。読めない記録 ${bad}件も除きました`;
+  if (shownNew) msg += `。記録のない店舗 ${shownNew}件も追加しました`;
   showMsg(importMsg, msg, true);
-  if (add.length) importText.value = '';
-  renderHistory(); renderResult(); renderStaples();
+  if (add.length || newStores.length) importText.value = '';
+  renderHistory(); renderResult(); renderStores();
 });
 
-// ---------- 定番タブ ----------
-const staplesEl = $('#staples-list');
+// ---------- 共通 (トースト・商品グループ) ----------
 let toastTimer = null;
 function toast(text) {
   const t = $('#toast');
@@ -988,25 +1094,8 @@ function productGroups() {
   });
 }
 
-function renderStaples() {
-  const gs = productGroups();
-  if (!gs.length) {
-    staplesEl.innerHTML = '<p class="placeholder">まだ定番がありません。<br>「比べる」の結果から履歴に保存すると、<br>その商品がここに並びます。</p>';
-    return;
-  }
-  staplesEl.innerHTML = '<p class="hint">タップすると「比べる」に候補を追加します</p>' + gs.map((g, i) => `
-    <button type="button" class="staple" data-i="${i}">
-      <span class="st-top"><span class="st-name">${esc(g.name)}</span><span class="st-meta">${g.recs.length}件・最新 ${fmtDate(g.latest.date)}</span></span>
-      <span class="st-min">${Object.entries(g.mins).map(([b, v]) => `底値 ${esc(b)} ${yen(v)}`).join(' / ')}</span>
-      <span class="st-go">${Number(g.latest.qty).toLocaleString('ja-JP')}${esc(g.latest.unit)} で比べる ›</span>
-    </button>`).join('');
-}
-
-staplesEl.addEventListener('click', (e) => {
-  const b = e.target.closest('button.staple');
-  if (!b) return;
-  const g = productGroups()[Number(b.dataset.i)];
-  if (!g) return;
+// 「比べる」に候補を追加 (旧・定番タブと同じ動き: 最新記録の商品名・量・単位で候補を作り、価格へ)
+function addToCompare(g) {
   if (state.items.length >= MAX) {
     toast(`候補がすでに${MAX}件あるので追加できません。「比べる」で1件消してから選んでください`);
     return;
@@ -1017,12 +1106,367 @@ staplesEl.addEventListener('click', (e) => {
   showTab('compare');
   renderCands();
   focusField(it.id, 'price');
+}
+
+// ---------- 店舗タブ ----------
+const LS_STORES = 'docchi.stores.v1'; // 店舗リスト (店名の配列。記録のない店舗も含む)
+const LS_UI = 'docchi.ui.v1';         // { folder: 前回開いていた店舗 ('' = 店名なし、null = 一覧) }
+function loadJSON(key, ok, fallback) {
+  try { const v = JSON.parse(localStorage.getItem(key)); if (ok(v)) return v; } catch (e) {}
+  return fallback;
+}
+let stores = loadJSON(LS_STORES, Array.isArray, [])
+  .filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim());
+function saveStores() {
+  try { localStorage.setItem(LS_STORES, JSON.stringify(stores)); return true; }
+  catch (e) { alert('保存できませんでした (ストレージがいっぱいか、プライベートブラウズの可能性があります)'); return false; }
+}
+const ui = loadJSON(LS_UI, (v) => v && typeof v === 'object', { folder: null });
+if (typeof ui.folder !== 'string') ui.folder = null;
+function saveUiState() {
+  try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch (e) {}
+}
+
+const storeKey = (r) => r.store || '';           // 店名が空の記録は「店名なし」フォルダ ('')
+const storeLabel = (k) => k || '店名なし';
+
+// 店舗フォルダ = 記録にある店名 + 店舗リスト。記録のある店は最新記録が新しい順、記録のない店はその後
+function storeFolders() {
+  const m = new Map();
+  [...records].sort(newer).forEach((r) => {
+    const k = storeKey(r);
+    if (!m.has(k)) m.set(k, { key: k, latest: r, products: new Set(), count: 0 });
+    const s = m.get(k);
+    s.products.add(r.product); s.count++;
+  });
+  stores.forEach((n) => { if (!m.has(n)) m.set(n, { key: n, latest: null, products: new Set(), count: 0 }); });
+  return [...m.values()];
+}
+
+const storesEl = $('#stores-view');
+let addingStore = false, renaming = false;
+let folderForm = null;   // 開いている記録フォームの入力 (再描画をまたいで保持)
+let listFolders = [], folderItems = [];
+
+function renderStores() {
+  const folders = storeFolders();
+  const cur = ui.folder == null ? null : folders.find((s) => s.key === ui.folder);
+  if (cur) { renderFolder(cur); return; }
+  if (ui.folder != null) { ui.folder = null; saveUiState(); }
+  folderForm = null; renaming = false;
+  renderStoreList(folders);
+}
+
+function renderStoreList(folders) {
+  listFolders = folders;
+  let html = '<h1>店舗</h1>';
+  html += addingStore
+    ? `<div class="card newstore">
+        <label class="rf-lab">店名<input class="txt" id="ns-name" type="text" autocomplete="off" enterkeyhint="done"></label>
+        <p class="err" hidden></p>
+        <div class="row-btns">
+          <button type="button" data-sa="cancel-store">やめる</button>
+          <button type="button" class="primary" data-sa="create-store">追加して開く</button>
+        </div>
+      </div>`
+    : '<button type="button" class="add" data-sa="add-store">＋ 新しい店舗を追加</button>';
+  if (!folders.length) {
+    html += '<p class="placeholder">まだ店舗がありません。<br>「新しい店舗を追加」でお店のフォルダを作り、<br>その中で商品の価格を記録します。</p>';
+  } else {
+    html += folders.map((s, i) => `<button type="button" class="srow" data-si="${i}">
+      <span class="sr-top"><span class="sr-name${s.key ? '' : ' noname'}">${esc(storeLabel(s.key))}</span><span class="sr-go">›</span></span>
+      <span class="sr-meta">${s.count ? `商品 ${s.products.size}種類・最新 ${fmtDate(s.latest.date)}` : 'まだ記録なし'}</span>
+    </button>`).join('');
+  }
+  storesEl.innerHTML = html;
+}
+
+function renderFolder(s) {
+  const key = s.key;
+  const here = [], others = [];
+  productGroups().forEach((g) => {
+    const at = g.recs.find((r) => storeKey(r) === key); // この店での最新記録
+    (at ? here : others).push({ g, at });
+  });
+  here.sort((a, b) => newer(a.at, b.at));
+  folderItems = [...here, ...others];
+
+  let html = `<button type="button" class="back" data-sa="back">‹ 店舗一覧</button>
+    <div class="fhead"><h1>${esc(storeLabel(key))}</h1>
+      <button type="button" class="mini" data-sa="rename">店名を変更</button>
+      ${s.count === 0 ? '<button type="button" class="mini" data-act="del" data-sa="delete">削除</button>' : ''}
+    </div>`;
+  if (renaming) {
+    html += `<div class="card rename">
+      <label class="rf-lab">新しい店名<input class="txt" id="rn-name" type="text" autocomplete="off" enterkeyhint="done" value="${esc(key)}"></label>
+      <p class="rf-hint">この店の記録 ${s.count}件の店名も変わります</p>
+      <p class="err" hidden></p>
+      <div class="row-btns">
+        <button type="button" data-sa="cancel-rename">やめる</button>
+        <button type="button" class="primary" data-sa="do-rename">変更する</button>
+      </div>
+    </div>`;
+  }
+  html += folderForm && folderForm.isNew
+    ? formHTML(folderForm, true)
+    : '<button type="button" class="add" data-sa="new-product">＋ 新しい商品を記録</button>';
+  html += '<h2 class="psec">この店で記録した商品</h2>';
+  html += here.length
+    ? `<div class="plist">${here.map((x, i) => itemHTML(x, i)).join('')}</div>`
+    : `<div class="plist"><p class="pempty">まだありません。${others.length ? '下の一覧から選ぶか、' : ''}「新しい商品を記録」から記録できます。</p></div>`;
+  if (others.length) {
+    html += `<h2 class="psec">ほかの商品</h2><div class="plist">${others.map((x, i) => itemHTML(x, here.length + i)).join('')}</div>`;
+  }
+  storesEl.innerHTML = html;
+  if (folderForm) updatePreview();
+}
+
+function itemHTML({ g, at }, i) {
+  const open = !!folderForm && !folderForm.isNew && folderForm.product === g.name;
+  return `<div class="pitem${open ? ' open' : ''}">
+    <button type="button" class="prow" data-pi="${i}" aria-expanded="${open}">
+      <span class="pr-name">${esc(g.name)}</span>
+      ${at
+        ? `<span class="pr-last">${at.mode === 'net' ? '実質' : ''}${yenInt(at.eff)}<small>${Number(at.qty).toLocaleString('ja-JP')}${esc(at.unit)}・${fmtDate(at.date)}</small></span>`
+        : '<span class="pr-none">この店は未記録</span>'}
+    </button>
+    ${open ? formHTML(folderForm, false) : ''}
+  </div>`;
+}
+
+function formHTML(f, top) {
+  const net = f.mode === 'net';
+  const field = (k, label, suffix, zero) => `<div class="field"><label>${label}</label>
+    <div class="num-wrap"><input class="num" data-rf="${k}"${zero ? ' data-zero="1" placeholder="0"' : ''} type="text" inputmode="decimal" autocomplete="off" value="${esc(f[k])}"><span class="suffix${k === 'qty' ? ' rf-unit' : ''}">${suffix}</span></div></div>`;
+  return `<div class="card rform${net ? ' is-net' : ''}${top ? ' top' : ''}">
+    ${f.isNew ? `<label class="rf-lab">商品名 (必須)<input class="txt" data-rf="product" type="text" autocomplete="off" enterkeyhint="next" value="${esc(f.product)}"></label>` : ''}
+    <div class="rf-meta">${fmtDate(today())} の記録・${esc(storeLabel(ui.folder))}</div>
+    <div class="seg" role="group" aria-label="モード">
+      <button type="button" data-rmode="store" aria-pressed="${!net}">実店舗</button>
+      <button type="button" data-rmode="net" aria-pressed="${net}">ネット</button>
+    </div>
+    <div class="fields">${field('price', '価格 (税込)', '円')}${field('qty', '量', esc(f.unit))}</div>
+    <div class="units" role="group" aria-label="単位">${UNIT_KEYS.map((u) => `<button type="button" data-runit="${u}" aria-pressed="${u === f.unit}">${u}</button>`).join('')}</div>
+    <div class="net-fields rf-net">${field('ship', '送料', '円', 1)}${field('coupon', 'クーポン', '円', 1)}${field('rate', '還元率', '%', 1)}</div>
+    <div class="rates rf-net" role="group" aria-label="還元率">${RATE_CHIPS.map((r) => `<button type="button" data-rrate="${r}" aria-pressed="${num0(f.rate) === r}">${r}%</button>`).join('')}</div>
+    ${f.hint ? `<p class="rf-hint">${f.hint}</p>` : ''}
+    <p class="rf-prev" id="rf-prev"></p>
+    <p class="err" hidden></p>
+    <div class="row-btns">
+      <button type="button" data-fa="cancel">やめる</button>
+      <button type="button" class="primary" data-fa="save">保存する</button>
+    </div>
+  </div>`;
+}
+
+// 単価のプレビュー (比べるタブと同じ計算)
+function updatePreview() {
+  const f = folderForm, el = $('#rf-prev', storesEl);
+  if (!f || !el) return;
+  const c = calcItem(f, f.mode === 'net');
+  if (!c) { el.innerHTML = '<small>価格と量を入れると単価が出ます</small>'; return; }
+  const g = productGroups().find((x) => x.name === f.product.trim());
+  const min = g ? g.mins[c.u.label] : undefined;
+  el.innerHTML = `${esc(c.u.label)} ${yen(c.up)}`
+    + (f.mode === 'net' ? `<small>${breakdownOf(c)}</small>` : '')
+    + (min != null ? `<small>これまでの底値 ${esc(c.u.label)} ${yen(min)}</small>` : '');
+}
+
+function openProduct(i) {
+  const x = folderItems[i];
+  if (!x) return;
+  if (folderForm && !folderForm.isNew && folderForm.product === x.g.name) { folderForm = null; renderStores(); return; }
+  const { g, at } = x, latest = g.latest;
+  // 価格はこの店の前回 (なければ他の店の最新)。量・単位はその商品の最新記録から。
+  // ただしこの店の前回が別の量なら、価格と量の組がずれないようにその記録の量・単位を使う
+  const src = at || latest;
+  const pair = at && (at.qty !== latest.qty || at.unit !== latest.unit) ? at : latest;
+  const fromNet = (v) => (src.mode === 'net' && v ? String(v) : '');
+  folderForm = {
+    isNew: false, product: g.name, mode: latest.mode,
+    price: String(src.price), qty: String(pair.qty), unit: pair.unit,
+    ship: fromNet(src.ship), coupon: fromNet(src.coupon), rate: fromNet(src.rate),
+    hint: at
+      ? `この店の前回 ${yenInt(at.price)}（${fmtDate(at.date)}）を入れています`
+      : `この店では初めてです。${esc(storeLabel(storeKey(latest)))}の最新 ${yenInt(latest.price)}（${fmtDate(latest.date)}）を入れています`,
+  };
+  renaming = false;
+  renderStores();
+  const inp = $('.rform [data-rf="price"]', storesEl);
+  if (inp) { inp.focus(); inp.select(); inp.closest('.pitem').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+}
+
+function openNewProduct() {
+  folderForm = { isNew: true, product: '', mode: 'store', price: '', qty: '', unit: 'g', ship: '', coupon: '', rate: '', hint: '' };
+  renaming = false;
+  renderStores();
+  const inp = $('.rform [data-rf="product"]', storesEl);
+  if (inp) inp.focus();
+}
+
+function saveFolderForm() {
+  const f = folderForm, form = $('.rform', storesEl);
+  if (!f || !form) return;
+  const err = $('.err', form);
+  const fail = (text, sel) => {
+    err.textContent = text; err.hidden = false;
+    const inp = sel && $(sel, form);
+    if (inp) inp.focus();
+  };
+  const product = f.product.trim();
+  if (!product) return fail('商品名を入れてください', '[data-rf="product"]');
+  const c = calcItem(f, f.mode === 'net');
+  if (!c) {
+    if (!(num(f.price) > 0)) return fail('価格を入れてください', '[data-rf="price"]');
+    if (!(num(f.qty) > 0)) return fail('量を入れてください', '[data-rf="qty"]');
+    return fail('送料・クーポン・還元率は0以上の数で入れてください');
+  }
+  const key = ui.folder;
+  const rec = makeRecord(product, key, f.mode, c, f.unit);
+  // 二重保存しない: 同じ商品・同じ店で、同じ日・同じ内容がすでにあれば保存しない
+  const dup = records.find((x) => x.product === product && storeKey(x) === key && keyOfRec(x) === keyOfRec(rec));
+  if (dup) return fail('今日この店で同じ内容をすでに記録しています');
+  records.push(rec);
+  if (!saveRecords()) { records.pop(); return; }
+  if (key && !stores.includes(key)) { stores.push(key); if (!saveStores()) stores.pop(); }
+  folderForm = null;
+  renderStores(); renderResult();
+  toast(`保存しました　${product} ${yenInt(rec.price)}`);
+}
+
+function openFolder(key) {
+  ui.folder = key; saveUiState();
+  folderForm = null; renaming = false;
+  renderStores();
+  window.scrollTo(0, 0);
+}
+
+function createStore() {
+  const inp = $('#ns-name', storesEl), err = $('.newstore .err', storesEl);
+  const name = inp.value.trim();
+  if (!name) { err.textContent = '店名を入れてください'; err.hidden = false; inp.focus(); return; }
+  if (!storeFolders().some((s) => s.key === name)) {
+    stores.push(name);
+    if (!saveStores()) { stores.pop(); return; }
+  }
+  addingStore = false;
+  openFolder(name);
+}
+
+function renameStore() {
+  const inp = $('#rn-name', storesEl), err = $('.rename .err', storesEl);
+  const name = inp.value.trim(), old = ui.folder;
+  if (!name) { err.textContent = '店名を入れてください'; err.hidden = false; inp.focus(); return; }
+  if (name === old) { renaming = false; renderStores(); return; }
+  if (storeFolders().some((s) => s.key === name)
+    && !confirm(`「${name}」のフォルダはすでにあります。2つのフォルダをまとめますか？`)) return;
+  const changed = records.filter((r) => storeKey(r) === old);
+  changed.forEach((r) => { r.store = name; });
+  if (!saveRecords()) { changed.forEach((r) => { r.store = old; }); return; }
+  const prev = stores.slice();
+  const i = stores.indexOf(old);
+  if (stores.includes(name)) stores = stores.filter((x) => x !== old);
+  else if (i >= 0) stores[i] = name;
+  else stores.push(name);
+  if (!saveStores()) stores = prev;
+  ui.folder = name; saveUiState();
+  renaming = false; folderForm = null;
+  renderStores(); renderHistory(); renderResult();
+  toast(`店名を「${name}」に変えました（記録 ${changed.length}件）`);
+}
+
+function deleteStore() {
+  const s = storeFolders().find((x) => x.key === ui.folder);
+  if (!s || s.count) return; // 記録があるフォルダは削除しない
+  if (!confirm(`「${storeLabel(s.key)}」のフォルダを削除しますか？`)) return;
+  const prev = stores.slice();
+  stores = stores.filter((x) => x !== s.key);
+  if (!saveStores()) { stores = prev; return; }
+  ui.folder = null; saveUiState();
+  renderStores();
+}
+
+function syncRrate(form, rate) {
+  const v = rate == null || String(rate).trim() === '' ? 0 : num(rate);
+  form.querySelectorAll('[data-rrate]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.rrate) === v)));
+}
+
+storesEl.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const form = b.closest('.rform');
+  if (b.dataset.si != null) { const s = listFolders[Number(b.dataset.si)]; if (s) openFolder(s.key); return; }
+  if (b.dataset.pi != null) { openProduct(Number(b.dataset.pi)); return; }
+  if (form && folderForm) {
+    if (b.dataset.rmode) {
+      folderForm.mode = b.dataset.rmode;
+      form.classList.toggle('is-net', folderForm.mode === 'net');
+      form.querySelectorAll('[data-rmode]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.rmode === folderForm.mode)));
+      updatePreview(); return;
+    }
+    if (b.dataset.runit) {
+      folderForm.unit = b.dataset.runit;
+      form.querySelectorAll('[data-runit]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.runit === folderForm.unit)));
+      $('.rf-unit', form).textContent = folderForm.unit;
+      updatePreview(); return;
+    }
+    if (b.dataset.rrate != null) {
+      folderForm.rate = b.dataset.rrate;
+      const inp = $('[data-rf="rate"]', form);
+      inp.value = folderForm.rate; inp.parentElement.classList.remove('bad');
+      syncRrate(form, folderForm.rate); updatePreview(); return;
+    }
+  }
+  switch (b.dataset.sa || b.dataset.fa) {
+    case 'add-store': addingStore = true; renderStores(); $('#ns-name', storesEl).focus(); break;
+    case 'cancel-store': addingStore = false; renderStores(); break;
+    case 'create-store': createStore(); break;
+    case 'back': ui.folder = null; saveUiState(); renderStores(); window.scrollTo(0, 0); break;
+    case 'rename': {
+      renaming = !renaming; renderStores();
+      const inp = $('#rn-name', storesEl);
+      if (inp) { inp.focus(); inp.select(); }
+      break;
+    }
+    case 'cancel-rename': renaming = false; renderStores(); break;
+    case 'do-rename': renameStore(); break;
+    case 'delete': deleteStore(); break;
+    case 'new-product': openNewProduct(); break;
+    case 'cancel': folderForm = null; renderStores(); break;
+    case 'save': saveFolderForm(); break;
+  }
+});
+
+storesEl.addEventListener('input', (e) => {
+  const t = e.target, form = t.closest('.rform');
+  if (!form || !folderForm || !t.dataset.rf) return;
+  folderForm[t.dataset.rf] = t.value;
+  if (t.classList.contains('num')) t.parentElement.classList.toggle('bad', !validField(t));
+  if (t.dataset.rf === 'rate') syncRrate(form, t.value);
+  $('.err', form).hidden = true;
+  updatePreview();
+});
+
+// 入力確定時に全角・カンマを半角数字に整える (比べるタブと同じ)
+storesEl.addEventListener('change', (e) => {
+  const t = e.target;
+  if (!folderForm || !t.dataset.rf || !t.classList.contains('num')) return;
+  const v = num(t.value);
+  if (v > 0 || (t.dataset.zero && v === 0)) { t.value = String(v); folderForm[t.dataset.rf] = t.value; }
+});
+
+storesEl.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' || e.isComposing) return;
+  const t = e.target;
+  if (t.id === 'ns-name') { e.preventDefault(); createStore(); }
+  else if (t.id === 'rn-name') { e.preventDefault(); renameStore(); }
+  else if (t.dataset.rf === 'product') { e.preventDefault(); const p = $('.rform [data-rf="price"]', storesEl); if (p) p.focus(); }
 });
 
 // ---------- タブ ----------
 function showTab(name) {
   if (name === 'history') renderHistory();
-  if (name === 'staples') renderStaples();
+  if (name === 'stores') renderStores();
   document.querySelectorAll('nav.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x.dataset.tab === name)));
   document.querySelectorAll('.tab-page').forEach((p) => { p.hidden = p.id !== 'tab-' + name; });
   window.scrollTo(0, 0);
@@ -1036,6 +1480,7 @@ document.querySelector('nav.tabs').addEventListener('click', (e) => {
 renderMode();
 renderCands();
 renderHistory();
+showTab('stores'); // 店舗タブから始める (前回開いていたフォルダがあればそのフォルダ)
 // file:// で開いたときは Service Worker を登録しない (http/https のみ)
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW登録失敗', e)));
