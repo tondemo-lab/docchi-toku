@@ -1,7 +1,7 @@
 // どっち得 Service Worker
 // ネット優先・失敗時はキャッシュ (オンラインなら常に最新、一度開けばオフラインでも開ける)
 // アプリのファイルを変えたら CACHE のバージョンを上げる
-const CACHE = 'docchi-v7';
+const CACHE = 'docchi-v8';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {

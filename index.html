@@ -306,6 +306,37 @@ nav.tabs button[aria-selected="true"] .ic { color: var(--accent); }
 }
 .bs-row.is-min .bs-up { color: var(--accent-ink); }
 #stores-view .add { margin-bottom: 4px; }
+
+/* 比べるタブ: 商品を選ぶ / 店ごとの比較 */
+.pk-title { margin-top: 0; }
+#pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.pchip {
+  max-width: 100%; border: 1.5px solid var(--line); background: var(--card); border-radius: 99px;
+  padding: 8px 14px; min-height: 42px; font-size: 16px; font-weight: 600; text-align: left; overflow-wrap: anywhere;
+}
+.pchip small { font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+.pchip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.pchip[aria-pressed="true"] small { color: var(--accent-text); opacity: .85; }
+#pcmp { margin-top: 18px; scroll-margin-top: 12px; }
+#pcmp h2 { font-size: 20px; margin: 0 0 10px; overflow-wrap: anywhere; }
+.pc-basis { font-size: 15px; font-weight: 700; color: var(--accent-ink); margin: 16px 0 8px; }
+.pc-basis:first-of-type { margin-top: 0; }
+.pc-meta { font-size: 14px; color: var(--muted); margin-top: 4px; }
+.pc-meta .mtag { color: var(--text); }
+.pc-one { color: var(--muted); font-size: 14px; margin: -4px 0 12px; }
+.pc-list li { flex-wrap: wrap; }
+.pc-list .nm { font-weight: 600; }
+.pc-list .nm small { display: block; font-size: 13px; font-weight: 500; color: var(--muted); }
+.pc-list .diff { white-space: nowrap; }
+.manual { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 4px; }
+.manual > summary {
+  list-style: none; display: flex; align-items: center; gap: 8px; min-height: 48px;
+  font-size: 17px; font-weight: 700; cursor: pointer;
+}
+.manual > summary::-webkit-details-marker { display: none; }
+.manual > summary::after { content: "＋"; margin-left: auto; color: var(--muted); font-weight: 600; }
+.manual[open] > summary::after { content: "−"; }
+.manual-body { padding-top: 8px; }
 .pitem { scroll-margin-top: 12px; }
 
 /* 書き出し・読み込み */
@@ -342,6 +373,12 @@ nav.tabs button[aria-selected="true"] .ic { color: var(--accent); }
   <!-- 2. 比べる -->
   <section class="tab-page" id="tab-compare" hidden>
     <h1>比べる</h1>
+    <div class="psec pk-title">商品を選ぶ</div>
+    <div id="pick"></div>
+    <div id="pcmp" aria-live="polite"></div>
+    <details class="manual" id="manual">
+    <summary>手で追加して比べる</summary>
+    <div class="manual-body">
     <div class="toolbar">
       <div class="seg" role="group" aria-label="モード">
         <button type="button" data-mode="store" aria-pressed="true">実店舗</button>
@@ -352,6 +389,8 @@ nav.tabs button[aria-selected="true"] .ic { color: var(--accent); }
     <div id="cands"></div>
     <button type="button" class="add" id="add">＋ 候補を追加</button>
     <section class="result" id="result" aria-live="polite"></section>
+    </div>
+    </details>
   </section>
 
   <!-- 3. 底値履歴 -->
@@ -806,7 +845,7 @@ function doSave(cid) {
   if (!saveRecords()) { records.pop(); return; }
   state.saved[cid] = { id: rec.id, product: rec.product, store: rec.store };
   delete saveUI[cid];
-  save(); renderResult(); renderHistory();
+  save(); renderResult(); renderHistory(); renderPick();
 }
 
 resultEl.addEventListener('click', (e) => {
@@ -859,7 +898,7 @@ function renderHistory() {
     const sum = Object.entries(mins).map(([b, v]) => `底値 ${esc(b)} ${yen(v)}`).join(' / ');
     html += `<div class="card hgroup">
       <div class="hhead"><span class="hname">${esc(name)}</span><span class="hcount">${recs.length}件</span>
-        <button type="button" class="mini" data-act="to-compare" data-gi="${gi}">比べるに追加</button></div>
+        <button type="button" class="mini" data-act="to-compare" data-gi="${gi}">比べる</button></div>
       <div class="hsum">${sum}</div>${byStoreHTML(recs)}<ul class="recs">`;
     recs.forEach((r, k) => {
       const min = mins[r.basis];
@@ -935,7 +974,7 @@ histEl.addEventListener('click', (e) => {
   if (!b) return;
   if (b.dataset.act === 'to-compare') {
     const g = productGroups()[Number(b.dataset.gi)];
-    if (g) addToCompare(g);
+    if (g) { pickedProduct = g.name; showTab('compare'); }
     return;
   }
   const li = b.closest('.rec'), rec = li && records.find((x) => x.id === li.dataset.rid);
@@ -1100,19 +1139,73 @@ function productGroups() {
   });
 }
 
-// 「比べる」に候補を追加 (旧・定番タブと同じ動き: 最新記録の商品名・量・単位で候補を作り、価格へ)
-function addToCompare(g) {
-  if (state.items.length >= MAX) {
-    toast(`候補がすでに${MAX}件あるので追加できません。「比べる」で1件消してから選んでください`);
+// ---------- 比べるタブ: 商品を選んで店ごとに比べる ----------
+let pickedProduct = null; // 選んでいる商品名 (画面だけの状態。保存はしない)
+const pickEl = $('#pick'), pcmpEl = $('#pcmp');
+const storeName = (r) => (r.store ? esc(r.store) : '店名なし');
+
+function renderPick() {
+  const groups = productGroups();
+  if (pickedProduct !== null && !groups.some((g) => g.name === pickedProduct)) pickedProduct = null;
+  if (!groups.length) {
+    pickEl.innerHTML = '<p class="hint">まだ記録がありません。「店舗」でお店のフォルダを開いて記録すると、ここで店ごとに比べられます。</p>';
+    pcmpEl.innerHTML = '';
     return;
   }
-  const it = { ...blank(g.latest.unit), name: g.name, qty: String(g.latest.qty) };
-  state.items.push(it);
-  save();
-  showTab('compare');
-  renderCands();
-  focusField(it.id, 'price');
+  pickEl.innerHTML = groups.map((g, gi) => `<button type="button" class="pchip" data-gi="${gi}" aria-pressed="${g.name === pickedProduct}">${esc(g.name)}<small>${g.recs.length}件</small></button>`).join('');
+  const g = groups.find((x) => x.name === pickedProduct);
+  pcmpEl.innerHTML = g ? productCompareHTML(g) : '<p class="hint">商品を選ぶと、店ごとの最新価格を単価の安い順に並べます。</p>';
 }
+
+// 店ごとの最新記録を基準ごとに分け、実質単価の安い順に
+function productCompareHTML(g) {
+  const byBasis = new Map();
+  g.recs.forEach((r) => { // recs は新しい順なので、各店の最初の1件が最新
+    if (!byBasis.has(r.basis)) byBasis.set(r.basis, new Map());
+    const m = byBasis.get(r.basis), k = r.store || '';
+    if (!m.has(k)) m.set(k, r);
+  });
+  const multi = byBasis.size > 1;
+  let html = `<h2>${esc(g.name)}</h2>`;
+  for (const [basis, m] of byBasis) {
+    const rows = [...m.values()].sort((a, b) => a.up - b.up || newer(a, b));
+    const w = rows[0];
+    if (multi) html += `<div class="pc-basis">${esc(basis)}で比べる</div>`;
+    const meta = (r) => `${r.mode === 'net' ? '<span class="mtag">ネット</span> ' : ''}実質${yenInt(r.eff)}・${Number(r.qty).toLocaleString('ja-JP')}${esc(r.unit)}・${fmtDate(r.date)}`;
+    const one = rows.length === 1;
+    html += `<div class="card winner">
+      <div class="lead">${one ? '記録' : '一番安い'}</div>
+      <div class="who">${storeName(w)}</div>
+      <div class="big">${yen(w.up)}<small>/ ${esc(basis.replace('あたり', ''))}</small></div>
+      <div class="pc-meta">${meta(w)}</div>
+    </div>`;
+    if (one) {
+      html += `<p class="pc-one">${g.recs.length === 1 ? '比べる記録がまだ1件だけです' : '比べるお店の記録がまだ1店だけです'}</p>`;
+      continue;
+    }
+    html += '<ul class="others pc-list">';
+    rows.slice(1).forEach((r, k) => {
+      const d = r.up - w.up;
+      const dTxt = d < EPS ? '1位と同じ単価' : `1位より${yen(d)}${w.up > 0 ? ` (${(d / w.up * 100).toFixed(1)}%)` : ''} 高い`;
+      html += `<li><span class="pos">${k + 2}位</span>
+        <span class="nm">${storeName(r)}<small>${meta(r)}</small></span>
+        <span class="up">${yen(r.up)}<span class="diff">${dTxt}</span></span></li>`;
+    });
+    html += '</ul>';
+  }
+  return html;
+}
+
+pickEl.addEventListener('click', (e) => {
+  const b = e.target.closest('.pchip');
+  if (!b) return;
+  const g = productGroups()[Number(b.dataset.gi)];
+  if (!g) return;
+  pickedProduct = g.name;
+  renderPick();
+  // 結果が画面の下に隠れていたら見える位置へ
+  if (pcmpEl.getBoundingClientRect().top > window.innerHeight * 0.6) pcmpEl.scrollIntoView({ block: 'start', behavior: 'smooth' });
+});
 
 // ---------- 店舗タブ ----------
 const LS_STORES = 'docchi.stores.v1'; // 店舗リスト (店名の配列。記録のない店舗も含む)
@@ -1473,6 +1566,7 @@ storesEl.addEventListener('keydown', (e) => {
 function showTab(name) {
   if (name === 'history') renderHistory();
   if (name === 'stores') renderStores();
+  if (name === 'compare') renderPick();
   document.querySelectorAll('nav.tabs button').forEach((x) => x.setAttribute('aria-selected', String(x.dataset.tab === name)));
   document.querySelectorAll('.tab-page').forEach((p) => { p.hidden = p.id !== 'tab-' + name; });
   window.scrollTo(0, 0);
